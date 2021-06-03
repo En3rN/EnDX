@@ -1,0 +1,394 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Imgui">
+      <UniqueIdentifier>{b8d6614a-6abe-43cc-8e40-b102cdf9d488}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Imgui\header">
+      <UniqueIdentifier>{14fd0021-01ae-4b75-8571-3edeb314cfa3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Imgui\src">
+      <UniqueIdentifier>{950f0b02-bda2-4a44-96f3-d0cf5cbfb64b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{4b3895ab-0a65-4bab-a7dd-5b227ad4301f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{55e6b5f8-1b39-4f2d-be72-c53ff9f16a23}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common\Logger">
+      <UniqueIdentifier>{7c14b83c-322a-4311-8270-728c2f7f0e73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common\Input">
+      <UniqueIdentifier>{7dbacadb-ab71-4dc1-b37c-436ae7efa572}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics">
+      <UniqueIdentifier>{13c9f63f-2b55-4eae-a70b-09903494bab0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Engine">
+      <UniqueIdentifier>{7bce7356-3e26-4e8b-81d8-e0cd3e160e88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common\Exceptions">
+      <UniqueIdentifier>{5f8a8e64-c1d4-4c2f-a216-54a2095018b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Engine\Renderer">
+      <UniqueIdentifier>{887ce76e-d500-46ca-825f-7bee7b9e229d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Engine\RenderPass">
+      <UniqueIdentifier>{5e31acba-63c7-4d86-a2d5-09c752e64d90}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common\Util">
+      <UniqueIdentifier>{f4f5f8b7-e8da-4207-a11f-f5bb1fe60bb2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common\Event">
+      <UniqueIdentifier>{cff1d158-fa1e-4feb-bab7-ae3ea16e7dda}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common\Window">
+      <UniqueIdentifier>{220582a5-63ee-4de2-8c26-d8226d1f5dab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Engine\InfoManager">
+      <UniqueIdentifier>{2c168c55-2d76-43ba-ae9b-557218ea1315}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Common">
+      <UniqueIdentifier>{1ff1f38f-be8c-4a5c-b09b-7ee0bdbbb00e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Entity">
+      <UniqueIdentifier>{2e3ff21b-5fee-432a-955c-2a4ca2764b24}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Entity\Drawable">
+      <UniqueIdentifier>{3268f3ec-e743-4a6c-9f36-60189531b549}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Entity\Drawable\Header">
+      <UniqueIdentifier>{96298db3-d83d-42cb-af93-e0b5a95cd4f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Entity\Drawable\Src">
+      <UniqueIdentifier>{e240e9ed-37db-4837-894d-40fa2605f83a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Entity\Drawable\Model">
+      <UniqueIdentifier>{457d5086-08e7-4b7a-bbf3-0fa15e510636}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Entity\Drawable\Model\Material">
+      <UniqueIdentifier>{1eec2c9e-fe43-480d-8200-b4379fe33d40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Entity\Drawable\Model\Mesh">
+      <UniqueIdentifier>{b74aa06c-070d-4524-859d-b40102764f81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Entity\Drawable\Bindable">
+      <UniqueIdentifier>{a0a3505d-7ab1-428a-bfd1-96cad8297abd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Entity\Drawable\Bindable\Header">
+      <UniqueIdentifier>{78b6027a-4499-4c06-bbe5-0e184bbc53e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Entity\Drawable\Bindable\Src">
+      <UniqueIdentifier>{3df49db1-fbc3-41c2-88d1-f823dfdc896d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Entity\Component">
+      <UniqueIdentifier>{3fa5fbf3-a742-4d29-92fe-79dc5898e936}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="EnDX.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imconfig.h">
+      <Filter>Imgui\header</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imgui.h">
+      <Filter>Imgui\header</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imgui_impl_dx11.h">
+      <Filter>Imgui\header</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imgui_impl_win32.h">
+      <Filter>Imgui\header</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imgui_internal.h">
+      <Filter>Imgui\header</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imstb_rectpack.h">
+      <Filter>Imgui\header</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imstb_textedit.h">
+      <Filter>Imgui\header</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imstb_truetype.h">
+      <Filter>Imgui\header</Filter>
+    </ClInclude>
+    <ClInclude Include="Vertex.h">
+      <Filter>Graphics\Entity\Drawable\Bindable\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>Graphics\Entity\Drawable\Bindable\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="InputLayout.h">
+      <Filter>Graphics\Entity\Drawable\Bindable\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="iBindable.h">
+      <Filter>Graphics\Entity\Drawable\Bindable\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Buffer.h">
+      <Filter>Graphics\Entity\Drawable\Bindable\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Cube.h">
+      <Filter>Graphics\Entity\Drawable\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Plane.h">
+      <Filter>Graphics\Entity\Drawable\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>Graphics\Entity\Drawable\Bindable\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Sampler.h">
+      <Filter>Graphics\Entity\Drawable\Bindable\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="BindableManager.h">
+      <Filter>Graphics\Entity\Drawable\Bindable\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Skybox.h">
+      <Filter>Graphics\Entity\Drawable\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Rasterizer.h">
+      <Filter>Graphics\Entity\Drawable\Bindable\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Drawable.h">
+      <Filter>Graphics\Entity\Drawable\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="logger.h">
+      <Filter>Common\Logger</Filter>
+    </ClInclude>
+    <ClInclude Include="Mouse.h">
+      <Filter>Common\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Keyboard.h">
+      <Filter>Common\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="enexception.h">
+      <Filter>Common\Exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="GfxResources.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="iHandle.h">
+      <Filter>Common\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Event.h">
+      <Filter>Common\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="enWin.h">
+      <Filter>Common\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>Common\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowsMessageMap.h">
+      <Filter>Common\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.h">
+      <Filter>Common\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="Blend.h">
+      <Filter>Graphics\Entity\Drawable\Bindable\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Stencil.h">
+      <Filter>Graphics\Entity\Drawable\Bindable\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="InfoManager.h">
+      <Filter>Graphics\Engine\InfoManager</Filter>
+    </ClInclude>
+    <ClInclude Include="RecT.h">
+      <Filter>Common\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="enString.h">
+      <Filter>Common\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="entrypoint.h">
+      <Filter>Common\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="end3d11.h">
+      <Filter>Common\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Graphics\Entity\Drawable\Model\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>Graphics\Entity\Drawable\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>Graphics\Entity\Drawable\Model\Material</Filter>
+    </ClInclude>
+    <ClInclude Include="vec.h">
+      <Filter>Common\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Graphics\Entity\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Entity.h">
+      <Filter>Graphics\Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="Teapot.h">
+      <Filter>Graphics\Entity\Drawable\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Controllable.h">
+      <Filter>Common\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Primitive.h">
+      <Filter>Graphics\Entity\Drawable\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="RandomFactory.h">
+      <Filter>Common\Util</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="EnDX.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui.cpp">
+      <Filter>Imgui\src</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_demo.cpp">
+      <Filter>Imgui\src</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_draw.cpp">
+      <Filter>Imgui\src</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_impl_dx11.cpp">
+      <Filter>Imgui\src</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_impl_win32.cpp">
+      <Filter>Imgui\src</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_widgets.cpp">
+      <Filter>Imgui\src</Filter>
+    </ClCompile>
+    <ClCompile Include="InputLayout.cpp">
+      <Filter>Graphics\Entity\Drawable\Bindable\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Bindable.cpp">
+      <Filter>Graphics\Entity\Drawable\Bindable\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Buffer.cpp">
+      <Filter>Graphics\Entity\Drawable\Bindable\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Plane.cpp">
+      <Filter>Graphics\Entity\Drawable\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>Graphics\Entity\Drawable\Bindable\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Graphics\Entity\Drawable\Bindable\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Sampler.cpp">
+      <Filter>Graphics\Entity\Drawable\Bindable\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="BindableManager.cpp">
+      <Filter>Graphics\Entity\Drawable\Bindable\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Skybox.cpp">
+      <Filter>Graphics\Entity\Drawable\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Rasterizer.cpp">
+      <Filter>Graphics\Entity\Drawable\Bindable\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Drawable.cpp">
+      <Filter>Graphics\Entity\Drawable\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="logger.cpp">
+      <Filter>Common\Logger</Filter>
+    </ClCompile>
+    <ClCompile Include="Keyboard.cpp">
+      <Filter>Common\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Mouse.cpp">
+      <Filter>Common\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="enexception.cpp">
+      <Filter>Common\Exceptions</Filter>
+    </ClCompile>
+    <ClCompile Include="GfxResources.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Window.cpp">
+      <Filter>Common\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowsMessageMap.cpp">
+      <Filter>Common\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="Event.cpp">
+      <Filter>Common\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="Blend.cpp">
+      <Filter>Graphics\Entity\Drawable\Bindable\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Stencil.cpp">
+      <Filter>Graphics\Entity\Drawable\Bindable\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="InfoManager.cpp">
+      <Filter>Graphics\Engine\InfoManager</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="RecT.cpp">
+      <Filter>Common\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Graphics\Entity\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Material.cpp">
+      <Filter>Graphics\Entity\Drawable\Model\Material</Filter>
+    </ClCompile>
+    <ClCompile Include="Model.cpp">
+      <Filter>Graphics\Entity\Drawable\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>Graphics\Entity\Drawable\Model\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Controllable.cpp">
+      <Filter>Common\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Entity.cpp">
+      <Filter>Graphics\Entity</Filter>
+    </ClCompile>
+    <ClCompile Include="Primitive.cpp">
+      <Filter>Graphics\Entity\Drawable\Src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="VertexShader.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="PixelShader.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="VSPosTex.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="PSTexture.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="PSSkybox.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="VSSkybox.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+</Project>
