@@ -27,7 +27,7 @@ namespace En3rN::DX
 		void Draw();
 
 	private:
-		Camera camera { 0, 0,-4 , 1000};
+		Camera camera { 0, 0,-4 ,5, 1000};
 		int selected = 0;
 		std::vector<std::unique_ptr<Drawable>> drawables;
 		std::vector<int> dynamicDrawableIndex;

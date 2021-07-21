@@ -9,8 +9,10 @@ namespace En3rN::DX
 	public:
 		enum class State { Wrap=1, Mirror, Clamp,Border, Mirror1};
 		Sampler(State state);
+		std::string GetKey(State state);
 		void Bind() override;
 	private:
+		State state;
 		ComPtr<ID3D11SamplerState> pSampler;
 
 	};

@@ -62,7 +62,7 @@ namespace En3rN
 		//Vec3(T xAngle, T yAngle, T zAngle = 1, T lenght = 1) : x(cos(xAngle)), y(sin(yAngle)) {};
 		Vec3(Vec3& other) = default;
 		Vec3(Vec3&& other) = default;
-		Vec3(std::initializer_list<T> list) : x(*(list.begin())), y(*(list.begin() + 1)), z(*(list.begin() + 2)) {};
+		//Vec3(std::initializer_list<T> list) : x(*(list.begin())), y(*(list.begin() + 1)), z(*(list.begin() + 2)) {};
 		Vec3(const DirectX::XMVECTOR& other)
 		{
 			DirectX::XMFLOAT3 f3;
@@ -122,6 +122,10 @@ namespace En3rN
 		void Normalize()
 		{
 			*this = DirectX::XMVector3Normalize(*this);
+		}
+		T Length()
+		{
+			return Vec3(DirectX::XMVector3Length(*this)).x;
 		}
 		
 		template <typename castT>

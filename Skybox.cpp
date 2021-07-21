@@ -6,6 +6,8 @@
 #include "Camera.h"
 #include "Blend.h"
 #include "Stencil.h"
+#include "Buffer.h"
+#include "InputLayout.h"
 namespace En3rN::DX
 {
 	Skybox::Skybox(std::wstring file)
@@ -21,7 +23,7 @@ namespace En3rN::DX
         float c = 0.01f;
         
 
-        std::vector<VertexPosTextCoord> vertecies{
+        std::vector<VertexPos> vertecies{
 
             {-p,+p,+p}, //up                // -c,  1 * x,1 * y
             {+p,+p,+p},                     // -c,  2 * x,1 * y
@@ -63,16 +65,16 @@ namespace En3rN::DX
         indexCount = (UINT)std::size(indecies);
         auto vs = std::make_unique <VertexShader>(L"VSSkybox.cso");
         auto ps = std::make_unique <PixelShader>(L"PSSkybox.cso");
-        AddBindable(std::make_unique <VertexBuffer<VertexPosTextCoord>>(vertecies));
+        AddBindable(std::make_unique <VertexBuffer<VertexPos>>(vertecies));
         AddBindable(std::make_unique <IndexBuffer>(indecies));
         AddBindable(std::make_unique <InputLayout>(InputLayout::Position, vs.get()->GetBlob()));
         AddBindable(std::move(vs));
         AddBindable(std::move(ps));
-        AddBindable(std::make_unique <Texture>(file, Texture::Type::SkyBox));
-        AddBindable(std::make_unique <Rasterizer>(CullMode::Front));
+        AddBindable(std::make_unique <Texture>(file, Texture::Type::CubeMap));
+        AddBindable(std::make_unique <Rasterizer>(State::Front));
         AddBindable(std::make_unique <Stencil>(Stencil::State::DepthOnlyFuncLessEqualNoWrite));
         AddBindable(std::make_unique <Sampler>(Sampler::State::Clamp));
-        AddBindable(std::make_unique <Transform>(Transform::Matrix{ viewMatrix }, *this));
+        AddBindable(std::make_unique <Transform>(Transform::Data{ viewMatrix }, *this));
 	}
 	void Skybox::Draw()
     {

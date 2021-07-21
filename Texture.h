@@ -10,10 +10,12 @@ namespace En3rN::DX
 	{
 	public:
 		using Container = std::vector<ID3D11ShaderResourceView*>;
-		enum class Type{Default, Cube, SkyBox};
-		Texture(std::wstring file, Type type= Type::Default, DirectX::TEX_FILTER_FLAGS flags= DirectX::TEX_FILTER_FLAGS::TEX_FILTER_DEFAULT);
+		enum class Type{Default, CubeMap};
+		Texture(std::wstring file, Type type= Type::Default);
+		static std::string GetKey(std::wstring filename, Type type= Type::Default);
 		void Bind();
 	private:
+		//std::string filename;
 		ComPtr<ID3D11Resource> pTexture;
 		ComPtr<ID3D11ShaderResourceView> pTextureView;
 	};

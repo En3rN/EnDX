@@ -2,12 +2,12 @@
 #include "..\DirectXTex\DirectXTex\DirectXTex.h"
 #include "enexception.h"
 #include "logger.h"
+#include "enString.h"
 
 namespace En3rN::DX
 {
-	Texture::Texture(std::wstring file , Type type, DirectX::TEX_FILTER_FLAGS flags)
+	Texture::Texture(std::wstring file , Type type)
 	{
-		
 		using namespace DirectX;
 		std::wstring folder = L"Assets/Textures/";
 		std::wstring fullpath = folder + file;
@@ -15,14 +15,16 @@ namespace En3rN::DX
 		DirectX::WIC_FLAGS wflags{};
 		DirectX::ScratchImage simg{};
 		DirectX::TexMetadata meta{};
-		DirectX::LoadFromWICFile(fullpath.c_str(), wflags, &meta, simg);
+		meta.mipLevels = 0;
+		
+		errchk::hres(DirectX::LoadFromWICFile(fullpath.c_str(), wflags, &meta, simg),EnExParam);
 
-		if (simg.GetMetadata().format != DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM || flags != TEX_FILTER_DEFAULT)
+		if (simg.GetMetadata().format != DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM)
 		{
 			DirectX::ScratchImage converted{};
 			DirectX::Convert(*simg.GetImages(),
 				DXGI_FORMAT_R8G8B8A8_UNORM,
-				flags,
+				TEX_FILTER_DEFAULT,
 				DirectX::TEX_THRESHOLD_DEFAULT,
 				converted);
 			simg = std::move(converted);
@@ -35,7 +37,7 @@ namespace En3rN::DX
 		tdesc.MipLevels = simg.GetMetadata().mipLevels;
 		tdesc.ArraySize = simg.GetMetadata().arraySize;
 		tdesc.Format = simg.GetMetadata().format;
-		tdesc.SampleDesc.Count = 1;
+		tdesc.SampleDesc.Count = 0;
 		tdesc.SampleDesc.Quality = 0;
 		tdesc.Usage = D3D11_USAGE_DEFAULT;
 		tdesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
@@ -56,57 +58,8 @@ namespace En3rN::DX
 		switch (type)
 		{
 		case En3rN::DX::Texture::Type::Default:
-			break;
-		case En3rN::DX::Texture::Type::Cube:
-		{
-			tdesc.Width;
-			tdesc.Height; // /= 3
-			tdesc.ArraySize = 6;
-			tdesc.MiscFlags |= D3D11_RESOURCE_MISC_TEXTURECUBE;
-			UINT sysMemPitch = subres.SysMemPitch = 12;
-			srvdesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
-			Rect rect;
-			rect.w = tdesc.Width / 4;
-			rect.h = tdesc.Height / 3;
-
-			ScratchImage cube;
-			cube.InitializeCube(simg.GetMetadata().format, rect.w, rect.h, 1, 1);
-
-
-			std::vector<uint16_t> srcImgIndexes{ 6,4,1,9,7,5 };
-			D3D11_TEXTURECUBE_FACE::D3D11_TEXTURECUBE_FACE_POSITIVE_X;
-			D3D11_TEXTURECUBE_FACE::D3D11_TEXTURECUBE_FACE_NEGATIVE_X;
-			D3D11_TEXTURECUBE_FACE::D3D11_TEXTURECUBE_FACE_POSITIVE_Y;
-			D3D11_TEXTURECUBE_FACE::D3D11_TEXTURECUBE_FACE_NEGATIVE_Y;
-			D3D11_TEXTURECUBE_FACE::D3D11_TEXTURECUBE_FACE_POSITIVE_Z;
-			D3D11_TEXTURECUBE_FACE::D3D11_TEXTURECUBE_FACE_NEGATIVE_Z;
-
-			D3D11_SUBRESOURCE_DATA subres[6]{};
-			for (auto i = 0; i < 6; i++)
-			{
-				auto& srcImgIndex = srcImgIndexes[i];
-				rect.x = (srcImgIndex % 4) * rect.w;
-				rect.y = (srcImgIndex / 4) * rect.w;
-				subres[i].SysMemPitch = sysMemPitch;
-				DirectX::CopyRectangle(*simg.GetImages(), rect, *cube.GetImage(0, i, 0), TEX_FILTER_DEFAULT, 0, 0);
-			}
-			
-			ScratchImage rotated[6];
-			int i = 0;
-			FlipRotate(*cube.GetImage(0, i, 0), TEX_FR_FLIP_HORIZONTAL, rotated[i]);i++;
-			FlipRotate(*cube.GetImage(0, i, 0), TEX_FR_FLIP_HORIZONTAL, rotated[i]);i++;
-			FlipRotate(*cube.GetImage(0, i, 0), TEX_FR_FLIP_VERTICAL, rotated[i]); i++;
-			FlipRotate(*cube.GetImage(0, i, 0), TEX_FR_FLIP_VERTICAL, rotated[i]);i++;
-			FlipRotate(*cube.GetImage(0, i, 0), TEX_FR_FLIP_HORIZONTAL, rotated[i]); i++;
-			FlipRotate(*cube.GetImage(0, i, 0), TEX_FR_FLIP_HORIZONTAL, rotated[i]);i++;
-			rect.x = 0; rect.y = 0;
-			simg.InitializeCube(cube.GetMetadata().format, rect.w, rect.h, 1, 1);
-			for (auto i = 0; i < 6; i++)
-				CopyRectangle(*rotated[i].GetImages(), rect, *simg.GetImage(0, i, 0), TEX_FILTER_DEFAULT, 0, 0);
-			
-			break;
-		}
-		case En3rN::DX::Texture::Type::SkyBox:
+			break;		
+		case En3rN::DX::Texture::Type::CubeMap:
 		{
 			tdesc.Width;
 			tdesc.Height; // /= 3
@@ -141,12 +94,66 @@ namespace En3rN::DX
 			simg = std::move(cube);
 			break;
 		}
+		
 		}
 		errchk::hres(CreateTexture(pDevice, simg.GetImages(), simg.GetImageCount(), simg.GetMetadata(), &pTexture), EnExParam);
 		errchk::hres(DirectX::CreateShaderResourceView(pDevice, simg.GetImages(), simg.GetImageCount(), simg.GetMetadata(), &pTextureView), EnExParam);
+	}
+	std::string Texture::GetKey(std::wstring filename, Type type)
+	{
+		return typeid(Texture).name() + '#' + stringconverter::str(filename)+ '#'+ std::to_string((int)type);
 	}
 	void Texture::Bind()
 	{
 		pContext->PSSetShaderResources(0, 1, pTextureView.GetAddressOf());
 	}
 }
+
+//case En3rN::DX::Texture::Type::RotateCubeMap:
+//{
+//	tdesc.Width;
+//	tdesc.Height; // /= 3
+//	tdesc.ArraySize = 6;
+//	tdesc.MiscFlags |= D3D11_RESOURCE_MISC_TEXTURECUBE;
+//	UINT sysMemPitch = subres.SysMemPitch = 12;
+//	srvdesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+//	Rect rect;
+//	rect.w = tdesc.Width / 4;
+//	rect.h = tdesc.Height / 3;
+//
+//	ScratchImage cube;
+//	cube.InitializeCube(simg.GetMetadata().format, rect.w, rect.h, 1, 1);
+//
+//	std::vector<uint16_t> srcImgIndexes{ 6,4,1,9,7,5 };
+//	D3D11_TEXTURECUBE_FACE::D3D11_TEXTURECUBE_FACE_POSITIVE_X;
+//	D3D11_TEXTURECUBE_FACE::D3D11_TEXTURECUBE_FACE_NEGATIVE_X;
+//	D3D11_TEXTURECUBE_FACE::D3D11_TEXTURECUBE_FACE_POSITIVE_Y;
+//	D3D11_TEXTURECUBE_FACE::D3D11_TEXTURECUBE_FACE_NEGATIVE_Y;
+//	D3D11_TEXTURECUBE_FACE::D3D11_TEXTURECUBE_FACE_POSITIVE_Z;
+//	D3D11_TEXTURECUBE_FACE::D3D11_TEXTURECUBE_FACE_NEGATIVE_Z;
+//
+//	D3D11_SUBRESOURCE_DATA subres[6]{};
+//	for (auto i = 0; i < 6; i++)
+//	{
+//		auto& srcImgIndex = srcImgIndexes[i];
+//		rect.x = (srcImgIndex % 4) * rect.w;
+//		rect.y = (srcImgIndex / 4) * rect.w;
+//		subres[i].SysMemPitch = sysMemPitch;
+//		DirectX::CopyRectangle(*simg.GetImages(), rect, *cube.GetImage(0, i, 0), TEX_FILTER_DEFAULT, 0, 0);
+//	}
+//
+//	ScratchImage rotated[6];
+//	int i = 0;
+//	FlipRotate(*cube.GetImage(0, i, 0), TEX_FR_FLIP_HORIZONTAL, rotated[i]); i++;
+//	FlipRotate(*cube.GetImage(0, i, 0), TEX_FR_FLIP_HORIZONTAL, rotated[i]); i++;
+//	FlipRotate(*cube.GetImage(0, i, 0), TEX_FR_FLIP_VERTICAL, rotated[i]); i++;
+//	FlipRotate(*cube.GetImage(0, i, 0), TEX_FR_FLIP_VERTICAL, rotated[i]); i++;
+//	FlipRotate(*cube.GetImage(0, i, 0), TEX_FR_FLIP_HORIZONTAL, rotated[i]); i++;
+//	FlipRotate(*cube.GetImage(0, i, 0), TEX_FR_FLIP_HORIZONTAL, rotated[i]); i++;
+//	rect.x = 0; rect.y = 0;
+//	simg.InitializeCube(cube.GetMetadata().format, rect.w, rect.h, 1, 1);
+//	for (auto i = 0; i < 6; i++)
+//		CopyRectangle(*rotated[i].GetImages(), rect, *simg.GetImage(0, i, 0), TEX_FILTER_DEFAULT, 0, 0);
+//
+//	break;
+//}

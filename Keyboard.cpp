@@ -6,7 +6,6 @@
 
 namespace En3rN::DX
 {
-
     void En3rN::DX::Keyboard::OnKeyPress(uint8_t keyCode)
     {        
         keystate.set(keyCode, true);

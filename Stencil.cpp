@@ -3,7 +3,7 @@
 
 namespace En3rN::DX
 {
-	Stencil::Stencil(State state)
+	Stencil::Stencil(State state) : state(state)
 	{
 		D3D11_DEPTH_STENCIL_DESC depthStencilDesc{};
 		depthStencilDesc.DepthEnable = TRUE;

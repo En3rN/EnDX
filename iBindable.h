@@ -2,7 +2,8 @@
 #include "iHandle.h"
 #include "GfxResources.h"
 #include <vector>
-//#include <DirectXMath.h>
+#include <string>
+
 
 namespace En3rN::DX
 {
@@ -12,7 +13,7 @@ namespace En3rN::DX
 	class Mouse;
 	class DynamicBindable;
 	class Camera;
-	class Bindable : public GfxResources , unPtr(Bindable)
+	class Bindable : public GfxResources , shPtr(Bindable)
 	{
 	public:
 		Bindable() = default;

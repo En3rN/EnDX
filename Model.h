@@ -5,12 +5,14 @@
 
 namespace En3rN::DX
 {
-	/*class Model 
+	class Model 
 	{
+		Model(const std::string& name);
 	public:
-	private:
-		Mesh::Container		m_meshes;
-		Material::Container m_material;
-	};*/
+	protected:
+		Mesh::Container			m_meshes;
+		Material::Container		m_material;
+		std::string				m_name;
+	};
 }
 

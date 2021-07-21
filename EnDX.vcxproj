@@ -186,13 +186,16 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Behavior.h" />
     <ClInclude Include="Blend.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Controllable.h" />
     <ClInclude Include="Cube.h" />
     <ClInclude Include="Drawable.h" />
+    <ClInclude Include="enBuffer.h" />
     <ClInclude Include="end3d11.h" />
+    <ClInclude Include="enMath.h" />
     <ClInclude Include="Event.h" />
     <ClInclude Include="GfxResources.h" />
     <ClInclude Include="iBindable.h" />
@@ -215,6 +218,7 @@
     <ClInclude Include="InfoManager.h" />
     <ClInclude Include="InputLayout.h" />
     <ClInclude Include="Keyboard.h" />
+    <ClInclude Include="Light.h" />
     <ClInclude Include="logger.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />
@@ -236,15 +240,18 @@
     <ClInclude Include="Timer.h" />
     <ClInclude Include="vec.h" />
     <ClInclude Include="Vertex.h" />
+    <ClInclude Include="VertexTypes.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="WindowsMessageMap.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Behavior.cpp" />
     <ClCompile Include="Blend.cpp" />
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Controllable.cpp" />
     <ClCompile Include="Drawable.cpp" />
+    <ClCompile Include="enBuffer.cpp" />
     <ClCompile Include="EnDX.cpp" />
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="Event.cpp" />
@@ -260,6 +267,7 @@
     <ClCompile Include="InfoManager.cpp" />
     <ClCompile Include="InputLayout.cpp" />
     <ClCompile Include="Keyboard.cpp" />
+    <ClCompile Include="Light.cpp" />
     <ClCompile Include="logger.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Mesh.cpp" />
@@ -273,7 +281,6 @@
     <ClCompile Include="Sampler.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Shader.cpp" />
-    <ClCompile Include="BindableManager.cpp" />
     <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="Stencil.cpp" />
     <ClCompile Include="Texture.cpp" />

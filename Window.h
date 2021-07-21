@@ -50,7 +50,7 @@ namespace En3rN::DX
 		std::vector<BYTE>	rawBuffer;
 		static HINSTANCE	hInstance;
 		static uint8_t		wCount;
-		bool				showMessage = true;
+		bool				showMessage = false;
 		bool				init = false;
 		bool				cursorEnabled = true;
 	};

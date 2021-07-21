@@ -20,7 +20,7 @@ namespace En3rN::DX
 					 uint8_t rawMode);
 		virtual void OnRawCapture(float dt, Keyboard& kbd, Mouse& mouse) = 0;
 		std::vector<uint8_t> keyMappings;
-		float sensitivity = 0.3;
+		float sensitivity = 0.5;
 		bool rawCapture;
 	};
 }

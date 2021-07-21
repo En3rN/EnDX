@@ -1,9 +1,10 @@
 #include "Blend.h"
 #include "enexception.h"
+#include <string>
 
 namespace En3rN::DX
 {
-	Blend::Blend(State state)
+	Blend::Blend(State state): state(state)
 	{
 		D3D11_RENDER_TARGET_BLEND_DESC rtbd{};
 		D3D11_BLEND_DESC blendDesc{};
@@ -38,6 +39,10 @@ namespace En3rN::DX
 			blendDesc.RenderTarget[i] = rtbd;
 		errchk::hres(pDevice->CreateBlendState(&blendDesc, &pBlenderState), EnExParam);
 
+	}
+	std::string Blend::GetKey()
+	{
+		return typeid(Blend).name()+'#'+std::to_string((int)state);
 	}
 	void Blend::Bind()
 	{

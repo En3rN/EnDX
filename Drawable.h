@@ -3,6 +3,7 @@
 #include "iBindable.h"
 #include "Entity.h"
 #include "Model.h"
+#include <functional>
 
 
 namespace En3rN::DX
@@ -23,8 +24,6 @@ namespace En3rN::DX
 		}
 		operator Entity& () { return dynamic_cast<Entity&>(*this); }
 	protected:
-		//std::vector<Mesh> meshes;
-		
 		std::vector<Bindable::handle> bindables;
 		std::vector<int> DynamicBindableIndexes;
 		UINT indexCount;
@@ -32,10 +31,12 @@ namespace En3rN::DX
 
 	class DynamicDrawable : public Drawable
 	{
+		friend class Behaviors;
 	public:
 		DynamicDrawable() = default;
 		DynamicDrawable(DynamicDrawable&& other) noexcept = default;
 		virtual ~DynamicDrawable() = default;
 		virtual void Update(float dt) = 0;
+	protected:
 	};
 }

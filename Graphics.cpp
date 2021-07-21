@@ -198,7 +198,7 @@ namespace En3rN::DX
 		};
 		Color color = { 0 , 0, 0 ,0 };
 
-		pContext->ClearDepthStencilView(pDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 1);
+		pContext->ClearDepthStencilView(pDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 		pContext->ClearRenderTargetView(pRenderTargetView.Get(), &color.r);
 	}
 	
@@ -219,8 +219,8 @@ namespace En3rN::DX
 			float x, y, z;
 			uint8_t r, g, b, a;
 		};
-		VertexPosColor VertexBuf[] =
-		{
+		VertexPosColor VertexBuf[1] = {};
+		/*{
 			{ -0.5f, -0.5f, -0.5f, 255,   0,   0, 255 },
 			{  0.5f, -0.5f, -0.5f,	 0, 255,   0, 255 },
 			{ -0.5f,  0.5f, -0.5f,   0,   0, 255, 255 },
@@ -229,7 +229,7 @@ namespace En3rN::DX
 			{  0.5f, -0.5f,  0.5f,   0, 255, 255, 255 },
 			{ -0.5f,  0.5f,  0.5f,   0,   0,   0, 255 },
 			{  0.5f,  0.5f,  0.5f, 255, 255, 255, 255 },
-		};
+		};*/
 
 		uint16_t Indecies[] =
 		{

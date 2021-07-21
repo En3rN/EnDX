@@ -273,11 +273,7 @@ namespace En3rN::DX
 			break;
 		case WM_INPUT:
 		{
-			Timer input("input");
-			if (!mouse.RawCapture())
-			{
-				break;
-			}
+			if (!mouse.RawCapture()){return true;}
 			UINT size{};
 			// first get the size of the input data
 			if (GetRawInputData(

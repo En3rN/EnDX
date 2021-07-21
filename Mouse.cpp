@@ -54,11 +54,11 @@ namespace En3rN::DX
 		rawDeltaBuffer.push_back(Vec2(dx,dy));
 		TrimBuffer();
 	}
-	std::optional<Vec2i> Mouse::GetRawDelta()
+	Vec2i Mouse::GetRawDelta()
 	{
 		if (rawDeltaBuffer.empty())
 		{
-			return std::nullopt;
+			return Vec2i(0,0);
 		}
 		const Vec2i d = rawDeltaBuffer.front();
 		rawDeltaBuffer.pop_front();

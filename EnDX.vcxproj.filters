@@ -93,6 +93,9 @@
     <Filter Include="Graphics\Entity\Component">
       <UniqueIdentifier>{3fa5fbf3-a742-4d29-92fe-79dc5898e936}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Graphics\Entity\Light">
+      <UniqueIdentifier>{1d3ef4d2-5340-4fd5-a457-c38bf2357b69}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EnDX.h">
@@ -121,9 +124,6 @@
     </ClInclude>
     <ClInclude Include="imgui\imstb_truetype.h">
       <Filter>Imgui\header</Filter>
-    </ClInclude>
-    <ClInclude Include="Vertex.h">
-      <Filter>Graphics\Entity\Drawable\Bindable\Header</Filter>
     </ClInclude>
     <ClInclude Include="Shader.h">
       <Filter>Graphics\Entity\Drawable\Bindable\Header</Filter>
@@ -251,6 +251,24 @@
     <ClInclude Include="RandomFactory.h">
       <Filter>Common\Util</Filter>
     </ClInclude>
+    <ClInclude Include="enMath.h">
+      <Filter>Common\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Vertex.h">
+      <Filter>Graphics\Entity\Drawable\Bindable\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Behavior.h">
+      <Filter>Graphics\Entity\Drawable\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>Graphics\Entity\Light</Filter>
+    </ClInclude>
+    <ClInclude Include="enBuffer.h">
+      <Filter>Common\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="EnDX.cpp">
@@ -293,9 +311,6 @@
       <Filter>Graphics\Entity\Drawable\Bindable\Src</Filter>
     </ClCompile>
     <ClCompile Include="Sampler.cpp">
-      <Filter>Graphics\Entity\Drawable\Bindable\Src</Filter>
-    </ClCompile>
-    <ClCompile Include="BindableManager.cpp">
       <Filter>Graphics\Entity\Drawable\Bindable\Src</Filter>
     </ClCompile>
     <ClCompile Include="Skybox.cpp">
@@ -369,6 +384,15 @@
     </ClCompile>
     <ClCompile Include="Primitive.cpp">
       <Filter>Graphics\Entity\Drawable\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Behavior.cpp">
+      <Filter>Graphics\Entity\Drawable\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Light.cpp">
+      <Filter>Graphics\Entity\Light</Filter>
+    </ClCompile>
+    <ClCompile Include="enBuffer.cpp">
+      <Filter>Common\Util</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

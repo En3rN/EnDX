@@ -3,6 +3,7 @@
 #include "enexception.h"
 #include "Entity.h"
 #include "end3d11.h"
+#include "enBuffer.h"
 #include <stdint.h>
 #include <vector>
 
@@ -37,6 +38,10 @@ namespace En3rN::DX
 			D3D11_SUBRESOURCE_DATA subRes{ data.data(),0,0 };
 			errchk::hres(pDevice->CreateBuffer(&pdesc, &subRes, &pBuffer),EnExParam);
 		}
+		std::string GetKey(std::string modelname) 
+		{
+			return typeid(VertexBuffer<T>).name() + '#' + modelname;
+		}
 		void Bind() override
 		{
 			pContext->IASetVertexBuffers(0, 1, pBuffer.GetAddressOf(), &stride, &offset);
@@ -44,6 +49,27 @@ namespace En3rN::DX
 
 	private:
 		
+	};
+
+	struct VertexBuff: public Buffer, public Bindable
+	{
+		VertexBuff(enBuffer& enbuf) : Buffer(enbuf.count(), enbuf.layout_size())
+		{
+			D3D11_BUFFER_DESC pdesc{};
+			pdesc.ByteWidth = stride * count;
+			pdesc.Usage = D3D11_USAGE_DEFAULT;
+			pdesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+			pdesc.CPUAccessFlags = 0;
+			pdesc.MiscFlags = 0;
+			pdesc.StructureByteStride = stride;
+			D3D11_SUBRESOURCE_DATA subRes{ enbuf.data().data(),0,0 };
+			errchk::hres(pDevice->CreateBuffer(&pdesc, &subRes, &pBuffer), EnExParam);
+		}
+		void Bind() override
+		{
+			pContext->IASetVertexBuffers(0, 1, pBuffer.GetAddressOf(), &stride, &offset);
+		}
+
 	};
 
 	
@@ -61,6 +87,10 @@ namespace En3rN::DX
 			pdesc.StructureByteStride = stride;
 			D3D11_SUBRESOURCE_DATA subRes{ data.data(),0,0 };
 			errchk::hres(pDevice->CreateBuffer(&pdesc, &subRes, &pBuffer), EnExParam);
+		}
+		std::string GetKey(std::string modelname)
+		{
+			return typeid(IndexBuffer).name() +'#' + modelname;
 		}
 		void Bind() override
 		{
@@ -93,11 +123,16 @@ namespace En3rN::DX
 		Entity& parent;
 		UINT slot;
 	};
+	
 	class Transform : public ConstantBuffer<DirectX::XMMATRIX>
 	{
 	public:
-		using Matrix = std::vector<DirectX::XMMATRIX>;
-		Transform(std::vector<DirectX::XMMATRIX> data, Entity& parent, uint8_t slot = 0) : ConstantBuffer<DirectX::XMMATRIX>(data, parent, slot) {};
+		using Data = std::vector<DirectX::XMMATRIX>;
+		Transform(Data data, Entity& parent, uint8_t slot = 0) : ConstantBuffer<DirectX::XMMATRIX>(data, parent, slot) {};
+		std::string GetKey()
+		{
+			return typeid(Transform).name();
+		}
 		void Bind() override
 		{
 			Update();

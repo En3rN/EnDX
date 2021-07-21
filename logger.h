@@ -33,9 +33,6 @@ namespace En3rN::DX
         ImGuiTextFilter     Filter;
         ImVector<int>       LineOffsets; // Index to lines offset. We maintain this with AddLog() calls.
         bool                AutoScroll;  // Keep scrolling if already at the bottom.
-        operator Logger&() {
-            return *logger;
-        }
 
         static void Err(const char* fmt, ...){
             va_list args;
@@ -152,6 +149,11 @@ namespace En3rN::DX
             if (logger->AutoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
                 ImGui::SetScrollHereY(1.0f);
 
+            if (logger->LineOffsets.size() > 1000)
+            {
+                logger->Clear();
+            }
+
             ImGui::EndChild();
             ImGui::End();
         }
@@ -164,6 +166,7 @@ namespace En3rN::DX
         }
         
     private:
+        
 
         void    Clear()
         {
@@ -179,9 +182,11 @@ namespace En3rN::DX
             Buf.append(label.c_str());
             int old_size = Buf.size();
             Buf.appendfv(fmt, args);
+            Buf.append("\n");
             for (int new_size = Buf.size(); old_size < new_size; old_size++)
                 if (Buf[old_size] == '\n')
                     LineOffsets.push_back(old_size + 1);
+            
         }
         std::string GetLabel(Level lvl)
         {
@@ -208,11 +213,14 @@ namespace En3rN::DX
             }
         }
         std::string format;
-        Level prevLevel;
-        Level level;
-        Level msgLevel;
+        Logger::Level prevLevel;
+        Logger::Level level;
+        Logger::Level msgLevel;
         static Logger::handle logger;
     };
+
+   
+
     
     // Demonstrate creating a simple log window with basic filtering.
     /*static void ShowExampleAppLog(bool* p_open)

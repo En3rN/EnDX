@@ -7,11 +7,19 @@ namespace En3rN
 	using namespace DirectX;
 	using namespace DX;
 
-
-	Entity::Entity() : pos{}, dir{ 0.0f,0.0f,0.0f }, scale{ 1.0f ,1.0f ,1.0f }, speed(1){UpdateViewMatrix(); }
+	size_t Entity::idCounter = -1;
+	Entity::Entity() : pos{}, dir{ 0.0f,0.0f,0.0f }, angles{ .0f,.0f,0.f }, scale{ 1.0f ,1.0f ,1.0f }, speed(1), acceleration(0)
+	{ 
+		idCounter++;
+		id = idCounter;
+		name = std::to_string(idCounter);
+		UpdateViewMatrix(); 
+	}
 	
 	Entity::Entity(float posx, float posy, float posz, float dirx, float diry, float dirz, float scalex, float scaley, float scalez)
 	{
+		idCounter++;
+		id = idCounter;
 		SetPosition(posx, posy, posz);
 		SetDirection(dirx, diry, dirz);
 		SetScale(scalex, scaley, scalez);
@@ -35,6 +43,10 @@ namespace En3rN
 		Vec3f newDir(x, y, z);
 		SetDirection(newDir);
 	}
+	void Entity::SetDirectionFromAngles() {
+		Vec3 base(.0f, .0f, 1.f);
+		dir = base.Rotate(angles.x, angles.y, angles.z);
+	}
 	void Entity::SetDirection(Vec3f& direction) 
 	{
 		dir=XMVector3Normalize(direction);
@@ -51,9 +63,9 @@ namespace En3rN
 	void Entity::UpdateViewMatrix()
 	{
 		viewMatrix =
-			XMMatrixRotationX(dir.x) *
-			XMMatrixRotationY(dir.y) *
-			XMMatrixRotationZ(dir.z) *
+			XMMatrixRotationX(angles.x) *
+			XMMatrixRotationY(angles.y) *
+			XMMatrixRotationZ(angles.z) *
 			XMMatrixScaling(scale.x, scale.y, scale.z) *
 			XMMatrixTranslation(pos.x, pos.y, pos.z);
 	}

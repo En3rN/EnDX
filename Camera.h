@@ -13,7 +13,7 @@ namespace En3rN::DX
 		friend class Skybox;
 	public:
 		Camera();
-		Camera(float x, float y, float z, float viewDistance);
+		Camera(float x, float y, float z, uint8_t speed, float viewDistance);
 		bool OnEvent(Event& e) override;
 		void OnRawCapture(float dt, Keyboard& kbd, Mouse& mouse) override;
 		void UpdateViewMatrix() override;
@@ -22,7 +22,6 @@ namespace En3rN::DX
 		static void SetActiveCamera(Camera& camera);
 	private:
 		static Camera* activeCam;
-		Vec3f angles;
 		float viewDistance;
 	};
 }

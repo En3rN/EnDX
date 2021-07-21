@@ -18,13 +18,13 @@ namespace En3rN::DX
 		void OnPress(uint8_t button);
 		void OnRelease(uint8_t button);
 		void OnRawDelta(int dx, int dy);
-		std::optional<Vec2i> GetRawDelta();
+		Vec2i GetRawDelta();
 		void SetRawCaptureMode();
 		bool RawCapture();
 		void TrimBuffer();
 
 	private:
-		uint8_t maxBufferSize = 16;
+		uint8_t maxBufferSize = 5;
 		Vec2<uint16_t> pos;
 		std::bitset<10> buttonState;
 		std::deque<Vec2i> rawDeltaBuffer;
