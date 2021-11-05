@@ -1,5 +1,7 @@
 #include "Mouse.h"
 #include "logger.h"
+#include "Entity.h"
+
 
 #include <sstream>
 namespace En3rN::DX
@@ -8,7 +10,7 @@ namespace En3rN::DX
 	{
 		//Register();
 	}
-	const Vec2<uint16_t>& Mouse::MousePos()
+	const Vec2<int16_t>& Mouse::MousePos()
 	{		
 		return pos;
 	}
@@ -22,50 +24,49 @@ namespace En3rN::DX
 	{
 		if (e.category == Event::Category::Mouse && e.type==Event::Type::RawCapture)
 		{
-			Logger::Debug("MouseRespondingToEvent");
-			SetRawCaptureMode();
+			/*auto listener = (RawListener*)(e.lparam);
+			rawCapture ? rawListener = nullptr : rawListener = dynamic_cast<RawListener*>(listener);*/
+			ToggleRawCaptureMode();
 			return true;
-			
 		}
 		return false;
 	}
 
-	void Mouse::OnMove(uint16_t x, uint16_t y)
-	{
-		/*std::stringstream s;
-		s << "MouseMove:[" << x <<',' << y << ']' << std::endl;*/
-		Logger::Debug("MousePosition [%d , %d]\n",x,y);
+	void Mouse::OnMove(int16_t& x, int16_t& y)
+	{		
+		Logger::Debug("MousePosition [%d , %d]",x,y);
 		pos.x = x; pos.y = y;
 	}
 
 	void Mouse::OnPress(uint8_t button)
 	{
-		Logger::Debug("MousePress [%d]\n", button);
+		Logger::Debug("MousePress [%d]", button);
 		buttonState[button] = true;
 	}
 
 	void Mouse::OnRelease(uint8_t button)
 	{
-		Logger::Debug("MouseRelease [%d]\n",button);
+		Logger::Debug("MouseRelease [%d]",button);
 		buttonState[button] = false;
 	}
-	void Mouse::OnRawDelta(int dx, int dy)
-	{
-		rawDeltaBuffer.push_back(Vec2(dx,dy));
+	void Mouse::OnRawDelta(const long& dx, const long& dy)
+	{		
+		//if (rawListener) rawListener->OnRawMouse(dx, dy);
+		rawDeltaBuffer.emplace(Vec2i(dx,dy));
 		TrimBuffer();
 	}
-	Vec2i Mouse::GetRawDelta()
+	std::optional<Vec2i> Mouse::GetRawDelta()
 	{
 		if (rawDeltaBuffer.empty())
 		{
-			return Vec2i(0,0);
+			return std::nullopt;
 		}
 		const Vec2i d = rawDeltaBuffer.front();
-		rawDeltaBuffer.pop_front();
+		rawDeltaBuffer.pop();
 		return d;
 		
 	}
-	void Mouse::SetRawCaptureMode()
+	void Mouse::ToggleRawCaptureMode()
 	{
 		rawCapture = rawCapture ? false : true;
 	}
@@ -77,7 +78,7 @@ namespace En3rN::DX
 	{
 		while (rawDeltaBuffer.size() > maxBufferSize)
 		{
-			rawDeltaBuffer.pop_front();
+			rawDeltaBuffer.pop();
 		}
 	}
 }

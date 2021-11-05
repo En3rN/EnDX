@@ -2,6 +2,10 @@
 #include "EnDX.h"
 namespace En3rN
 {
+	Event::handle Event::Create(Event::Category category, Event::Type type, WPARAM wparam, LPARAM lparam)
+	{
+		return std::make_shared<Event>(category, type, wparam, lparam);
+	}
 
 	void En3rN::EventListener::Register()
 	{
@@ -14,8 +18,8 @@ namespace En3rN
 		auto& eh = DX::Window::GetEventHandler();
 		eh.Unregister(this);
 	}
-	
-	void EventHandler::AddEvent(Event& event)
+
+	void EventHandler::AddEvent(Event::handle event)
 	{
 		eventQue.push_back(event);
 	}
@@ -25,7 +29,11 @@ namespace En3rN
 	}
 	void EventHandler::Unregister(EventListener* listener)
 	{
-		//auto it = std::remove_if(listeners.begin(), listeners.end(), listener);
+		for(auto it=listeners.begin();it<listeners.end();++it)
+			if (*it == listener) {
+				listeners.erase(it);
+			}
+		
 	}
 
 	void EventHandler::ProcessEvents()
@@ -34,7 +42,7 @@ namespace En3rN
 		{
 			for (auto listener : listeners)
 			{
-				if (listener->OnEvent(eventQue.front())) break;
+				if (listener->OnEvent(*eventQue.front())) break;
 			}
 			eventQue.pop_front();
 		}
@@ -43,7 +51,7 @@ namespace En3rN
 	En3rN::Event::Event(Category category,Event::Type type, WPARAM wparam, LPARAM lparam) :
 		category(category), type(type), status(Event::Status::NotHandled), wparam(wparam), lparam(lparam)
 	{
-		DX::Window::GetEventHandler().AddEvent(*this);
+		
 	}
 
 }

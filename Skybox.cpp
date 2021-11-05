@@ -8,54 +8,50 @@
 #include "Stencil.h"
 #include "Buffer.h"
 #include "InputLayout.h"
+#include "enBuffer.h"
+#include "Transform.h"
 namespace En3rN::DX
 {
-	Skybox::Skybox(std::wstring file)
+	Skybox::Skybox(std::string file)
 	{ 
-        auto cam = Camera::GetActiveCamera();
-        pos = cam.pos;
+        auto& cam = Camera::GetActiveCamera();
+        pos = { 0,0,0 }; // cam.pos;
         scale = { 1,1,1};
         dir={};
         float x = 1.0f / 4.0f;
         float y = 1.0f / 3.0f;
-        float p = 0.5f;
-
+        float p = 1.0f;
         float c = 0.01f;
-        
-
-        std::vector<VertexPos> vertecies{
-
-            {-p,+p,+p}, //up                // -c,  1 * x,1 * y
-            {+p,+p,+p},                     // -c,  2 * x,1 * y
-            {+p,+p,-p},             // +c        ,  2 * x,0 * y
-            {-p,+p,-p},             // +c        ,  1 * x,0 * y
-                     
-            {-p,-p,-p}, //down        // -c      ,  1 * x,3 * y
-            {+p,-p,-p},               // -c      ,  2 * x,3 * y
-            {+p,-p,+p},                   // +c  ,  2 * x,2 * y
-            {-p,-p,+p},                   // +c  ,  1 * x,2 * y
-                     
-            {-p,+p,+p},             //+c         ,  1 * x,1 * y
-            {-p,+p,-p},             //+c         ,  0 * x,1 * y
-            {-p,-p,-p},             //-c         ,  0 * x,2 * y
-            {-p,-p,+p}, //left      //-c         ,  1 * x,2 * y
-                     
-            {-p,-p,+p}, //back      //-c         ,  1 * x,2 * y
-            {+p,-p,+p},             //-c         ,  2 * x,2 * y
-            {+p,+p,+p},             //+c         ,  2 * x,1 * y
-            {-p,+p,+p},             //+c         ,  1 * x,1 * y
-                     
-            {+p,+p,-p}, //right    // +c         ,  3 * x,1 * y
-            {+p,+p,+p},            // +c         ,  2 * x,1 * y
-            {+p,-p,+p},            // -c         ,  2 * x,2 * y
-            {+p,-p,-p},            // -c         ,  3 * x,2 * y
-                     
-            {-p,+p,-p}, //front           // +c  ,  4 * x,1 * y
-            {+p,+p,-p},                   // +c  ,  3 * x,1 * y
-            {+p,-p,-p},                   // -c  ,  3 * x,2 * y
-            {-p,-p,-p},                   // -c  ,  4 * x,2 * y
-                                                        //
+        VertexElement::Pos vertecies[]
+        {
+            {-p,+p,+p,}, //up    // 0.0f,1.0f
+            {+p,+p,+p,},         // 1.0f,1.0f
+            {+p,+p,-p,},         // 1.0f,0.0f
+            {-p,+p,-p,}, 		 // 0.0f,0.0f
+            {-p,+p,+p,}, //left  // 0.0f,1.0f         
+            {-p,+p,-p,},		 // 1.0f,1.0f
+            {-p,-p,-p,},		 // 1.0f,0.0f
+            {-p,-p,+p,},		 // 0.0f,0.0f
+            {-p,+p,-p,}, //front // 0.0f,1.0f
+            {+p,+p,-p,},		 // 1.0f,1.0f
+            {+p,-p,-p,},		 // 1.0f,0.0f
+            {-p,-p,-p,},		 // 0.0f,0.0f
+            {+p,+p,-p,}, //right // 0.0f,1.0f
+            {+p,+p,+p,},		 // 1.0f,1.0f
+            {+p,-p,+p,},		 // 1.0f,0.0f
+            {+p,-p,-p,},		 // 0.0f,0.0f
+            {-p,-p,+p,}, //back  // 0.0f,1.0f
+            {+p,-p,+p,},		 // 1.0f,1.0f
+            {+p,+p,+p,},		 // 1.0f,0.0f
+            {-p,+p,+p,},		 // 0.0f,0.0f
+            {-p,-p,-p,}, //down  // 0.0f,1.0f
+            {+p,-p,-p,},		 // 1.0f,1.0f
+            {+p,-p,+p,},		 // 1.0f,0.0f
+            {-p,-p,+p,},		 // 0.0f,0.0f
         };
+        enBuffer buf;
+        buf.add_element(vertecies, std::size(vertecies));
+        buf.create_buffer();
         std::vector<uint16_t> indecies{ 0, 1, 2, 2, 3, 0,   //
                                         4, 5, 6, 6, 7, 4,   //
                                         8, 9,10,10,11, 8,   //
@@ -63,18 +59,18 @@ namespace En3rN::DX
                                        16,17,18,18,19,16,   //
                                        20,21,22,22,23,20};  //
         indexCount = (UINT)std::size(indecies);
-        auto vs = std::make_unique <VertexShader>(L"VSSkybox.cso");
-        auto ps = std::make_unique <PixelShader>(L"PSSkybox.cso");
-        AddBindable(std::make_unique <VertexBuffer<VertexPos>>(vertecies));
-        AddBindable(std::make_unique <IndexBuffer>(indecies));
-        AddBindable(std::make_unique <InputLayout>(InputLayout::Position, vs.get()->GetBlob()));
+        auto vs = BindableManager::Query <VertexShader>("VSSkybox.cso");        
+        auto ps = BindableManager::Query <PixelShader>("PSSkybox.cso");
+        AddBindable(BindableManager::Query<VertexBuffer>(buf,"cube"));
+        AddBindable(BindableManager::Query<IndexBuffer>(indecies, "cube"));
+        AddBindable(BindableManager::Query<InputLayout>(vs->GetSignatures(), vs.get()->GetBlob(),"cube"));
+        AddBindable(BindableManager::Query<Texture>(file, 0, Texture::Type::CubeMap));
+        AddBindable(BindableManager::Query<Sampler>(Sampler::State::Wrap));
+        AddBindable(BindableManager::Query<Rasterizer>(Rasterizer::State::Front));
+        AddBindable(BindableManager::Query<Stencil>(Stencil::State::DepthOnlyFuncLessEqualNoWrite));
+        AddBindable(BindableManager::Query<Transform::ConstantBuffer>(2,1));
         AddBindable(std::move(vs));
         AddBindable(std::move(ps));
-        AddBindable(std::make_unique <Texture>(file, Texture::Type::CubeMap));
-        AddBindable(std::make_unique <Rasterizer>(State::Front));
-        AddBindable(std::make_unique <Stencil>(Stencil::State::DepthOnlyFuncLessEqualNoWrite));
-        AddBindable(std::make_unique <Sampler>(Sampler::State::Clamp));
-        AddBindable(std::make_unique <Transform>(Transform::Data{ viewMatrix }, *this));
 	}
 	void Skybox::Draw()
     {
@@ -83,7 +79,7 @@ namespace En3rN::DX
 	}
     void Skybox::Update(float dt)
     {
-        auto cam = Camera::GetActiveCamera();
+        auto& cam = Camera::GetActiveCamera();
         pos = cam.GetPosition();
     }
 }

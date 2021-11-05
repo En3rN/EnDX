@@ -133,11 +133,9 @@ namespace En3rN
 		{
 			return { static_cast<castT>(x), static_cast<castT>(y), static_cast<castT>(z) };
 		}
-		operator DirectX::XMFLOAT3() {return DirectX::XMFLOAT3(x,y,z);}
-		operator DirectX::XMVECTOR (){ 
-			DirectX::XMFLOAT3 f3(x,y,z);
-			return DirectX::XMLoadFloat3(&f3);
-		}
+		operator DirectX::XMFLOAT3() {return (DirectX::XMFLOAT3)*this;}
+		operator const DirectX::XMFLOAT3* () const { return (DirectX::XMFLOAT3*)this; }
+		operator const DirectX::XMVECTOR () const {return DirectX::XMLoadFloat3(*this);}
 		operator T* () { return {&x}; }
 		T x, y, z;
 	};
@@ -147,6 +145,7 @@ namespace En3rN
 		T x,y,z,w;
 	};
 	using Vec2i =  Vec2<int>;
+	using Vec2l = Vec2<long>;
 	using Vec2f =  Vec2<float>;
 	using Vec3f =  Vec3<float>;
 	using Vec4f =  Vec4<float>;

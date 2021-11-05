@@ -6,19 +6,21 @@
 
 namespace En3rN::DX
 {
-	void Transform::Update()
+	/*void VSConstantBuffer<DirectX::XMMATRIX>::Update(const Entity& e)
 	{
-		auto cam = Camera::GetActiveCamera();
-		DirectX::XMMATRIX data =
-			DirectX::XMMatrixTranspose(
-				parent.GetViewMatrix() *
-				cam.GetViewMatrix() *
-				cam.GetProjectionMatrix()
-			);
-		D3D11_MAPPED_SUBRESOURCE msr{};
-		errchk::hres(pContext->Map(pBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr), EnExParam);
-		memcpy(msr.pData, &data, sizeof(data));
-		pContext->Unmap(pBuffer.Get(), 0u);
-	}
-	
+		{
+			auto& cam = Camera::GetActiveCamera();
+			DirectX::XMMATRIX data[] = {
+				{e.GetViewMatrix() },
+				{cam.GetViewMatrix()},
+				{cam.GetProjectionMatrix()}
+			};
+			
+			D3D11_MAPPED_SUBRESOURCE msr{};
+			errchk::hres(pContext->Map(pBuffer.Get(), slot, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0u, &msr), EnExParam);
+			memcpy(msr.pData, &data, stride*count);
+			pContext->Unmap(pBuffer.Get(), slot);
+		}
+	}*/
 }
+

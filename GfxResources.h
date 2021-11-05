@@ -15,7 +15,6 @@ namespace En3rN::DX
 		virtual ~GfxResources() = default;
 		static ID3D11DeviceContext& GetContext();
 		static ID3D11Device& GetDevice();
-		static ID3D11InfoQueue& GetInfoQ();
 		ID3D11Device* pDevice;
 		ID3D11DeviceContext* pContext;
 #ifdef _DEBUG

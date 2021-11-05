@@ -5,7 +5,6 @@
 #include "enexception.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
-#include "logger.cpp"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -43,7 +42,7 @@ namespace En3rN::DX
 		wr.top = 100;
 		wr.bottom = WindowHeight + wr.top;
 
-		AdjustWindowRect(&wr, WS_CAPTION | WS_SYSMENU, FALSE);
+		AdjustWindowRect(&wr, WS_CAPTION | WS_SYSMENU | WS_OVERLAPPED, FALSE);
 		hWnd = CreateWindow(appName.c_str(), wName.c_str(),
 			WS_CAPTION | WS_SYSMENU | WS_OVERLAPPED,
 			wr.left, wr.top, wr.right - wr.left, wr.bottom - wr.top,
@@ -175,20 +174,19 @@ namespace En3rN::DX
 			switch (e.type)
 			{
 			case Event::Type::RawCapture:
-				if (cursorEnabled)
-				{
-					HideCursor();
-					ConfineCursor();
+				if (cursorEnabled){
 					DisableCursor();
 					return true;
 				}
-				else
-				{
-					ShowCursor();
-					FreeCursor();
+				else{
 					EnableCursor();
 					return true;
 				}
+			case Event::Type::FullScreen:
+				pGfx->SetFullscreen();
+				pGfx->OnResize(WindowWidth, WindowHeight);
+				pGfx->SetPresent(true);
+				return true;
 			default:
 				return false;
 			}
@@ -200,13 +198,18 @@ namespace En3rN::DX
 		if (showMessage) {
 			WindowsMessageMap msgmap;
 			std::string msg = msgmap(message, wParam, lParam);
-			Logger::Debug(msg.c_str());
+			//Logger::Debug(msg.c_str());
 			//OutputDebugString(msg.c_str());
 		}
 		switch (message)
 		{
+		case WM_KILLFOCUS:
+			kbd.Clear();
+			mouse.ToggleRawCaptureMode();
+			//EnableCursor();
+			return 0;
 		case WM_SIZE: {
-			if (init) {
+			if (pGfx) {
 				UINT width = LOWORD(lParam);
 				UINT height = HIWORD(lParam);
 				if (pGfx)pGfx->OnResize(width, height);
@@ -222,7 +225,7 @@ namespace En3rN::DX
 		case WM_KEYDOWN:
 		{
 			if (ImGui::GetIO().WantCaptureKeyboard) break;
-			Event e(Event::Category::Keyboard, Event::Type::KeyDown, wParam, lParam);
+			eventHandler.AddEvent(Event::Create(Event::Category::Keyboard, Event::Type::KeyDown, wParam, lParam));
 			kbd.OnKeyPress((uint8_t)wParam);
 			break;
 		}
@@ -230,14 +233,14 @@ namespace En3rN::DX
 		case WM_KEYUP:
 		{
 			if (ImGui::GetIO().WantCaptureKeyboard) break;
-			Event e(Event::Category::Keyboard, Event::Type::KeyUp, wParam, lParam);
+			eventHandler.AddEvent(Event::Create(Event::Category::Keyboard, Event::Type::KeyUp, wParam, lParam));
 			kbd.OnKeyRelease((uint8_t)wParam);
 			break;
 		}
 			//mouse
 		case WM_MOUSEMOVE:
 		{
-			Event e(Event::Category::Mouse, Event::Type::Move, wParam, lParam);
+			eventHandler.AddEvent(Event::Create(Event::Category::Mouse, Event::Type::Move, wParam, lParam));
 			POINTS pos = MAKEPOINTS(lParam);
 			mouse.OnMove(pos.x, pos.y);
 			break;
@@ -261,18 +264,44 @@ namespace En3rN::DX
 			break;
 		}
 		case WM_STYLECHANGED:
-			if (init) {
-				tagSTYLESTRUCT* style = (tagSTYLESTRUCT*)(lParam);
-				if (style->styleNew == 0x00000000) {
-					pGfx->OnResize(WindowWidth, WindowHeight);
+			if (pGfx) {
+				STYLESTRUCT* style = (STYLESTRUCT*)(lParam);
+				/*if (wParam & GWL_EXSTYLE)
+				{
+					if (style->styleNew & 0x00000000) {
+						pGfx->SetFullscreen(true);
+						pGfx->OnResize(::GetSystemMetrics(SM_CXFULLSCREEN), ::GetSystemMetrics(SM_CXFULLSCREEN));
+					}
+					if (style->styleNew & WS_EX_OVERLAPPEDWINDOW)
+					{
+						pGfx->SetFullscreen(false);
+						pGfx->OnResize(WindowWidth, WindowHeight);
+					}
+					break;
 				}
-				else {
-					pGfx->OnResize(WindowWidth, WindowHeight);
+				if (wParam & GWL_STYLE)
+				{
+					if (style->styleNew & 0x00000000) {
+						pGfx->SetFullscreen(true);
+						pGfx->OnResize(::GetSystemMetrics(SM_CXFULLSCREEN), ::GetSystemMetrics(SM_CXFULLSCREEN));
+					}
+					if (style->styleNew & WS_CAPTION | WS_SYSMENU | WS_OVERLAPPED)
+					{
+						pGfx->SetFullscreen(false);
+						pGfx->OnResize(WindowWidth, WindowHeight);
+					}
+				}*/
+				if (style->styleNew == style->styleOld)
+				{
+					OutputDebugString("Style\n");
+					pGfx->SetPresent(false);
+					eventHandler.AddEvent(Event::Create(Event::Category::Window, Event::Type::FullScreen, wParam, lParam));
 				}
 			}
 			break;
 		case WM_INPUT:
 		{
+			Timer t("WM_INPUT");
 			if (!mouse.RawCapture()){return true;}
 			UINT size{};
 			// first get the size of the input data

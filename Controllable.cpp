@@ -2,9 +2,9 @@
 
 namespace En3rN::DX
 {
-	Controllable::Controllable()
+	Controllable::Controllable() : rawCapture(false)
 	{
-		keyMappings = { 'W','S','A','D',VK_SPACE,VK_CONTROL,'Q','E','R','F', VK_MENU };
+		keyMappings = { 'W','S','A','D',VK_SPACE,VK_CONTROL,'Q','E','R','F', VK_TAB };
 		Register();
 	}
 	Controllable::Controllable( uint8_t forward, uint8_t backward,

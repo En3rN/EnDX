@@ -10,6 +10,8 @@ namespace En3rN::DX
 		void OnKeyPress(uint8_t keyCode);
 		void OnKeyRelease(uint8_t keyCode);
 		bool IsPressed(uint8_t keyCode);
+		int  PressCount();
+		void Clear();
 	private:
 		std::bitset<256u> keystate{ 0 };
 	};

@@ -39,11 +39,7 @@ namespace En3rN::DX
 			blendDesc.RenderTarget[i] = rtbd;
 		errchk::hres(pDevice->CreateBlendState(&blendDesc, &pBlenderState), EnExParam);
 
-	}
-	std::string Blend::GetKey()
-	{
-		return typeid(Blend).name()+'#'+std::to_string((int)state);
-	}
+	}	
 	void Blend::Bind()
 	{
 		pContext->OMSetBlendState(pBlenderState.Get(), nullptr, 0xFFFFFFFF);

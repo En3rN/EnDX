@@ -9,7 +9,7 @@
 
 namespace En3rN::DX
 {
-	class Plane : public DynamicDrawable
+	class Plane : public Drawable
 	{
 	public:
 		Plane();

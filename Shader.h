@@ -11,60 +11,137 @@ namespace En3rN::DX
 	{
 	public:
 		static std::wstring shaderFolder;
-		ID3DBlob* GetBlob() { return blob.Get(); }
+		ID3DBlob* GetBlob() { return shaderBlob.Get(); }
+		LPVOID	GetBufferPointer() { return shaderBlob->GetBufferPointer(); }
+		SIZE_T	GetBufferSize() { return shaderBlob->GetBufferSize(); }
+
 	protected:
-		Microsoft::WRL::ComPtr<ID3DBlob> blob;
+		ComPtr<ID3DBlob> shaderBlob;
+		ComPtr<ID3D11ShaderReflection> reflection;
 		
-		Shader(std::wstring filename) : filename(stringconverter::str(filename))
+		Shader(std::string filename) : m_passName(filename)
 		{
-			std::wstring file = shaderFolder +L"\\Shaders\\"+  filename;
-			errchk::hres(D3DReadFileToBlob(file.c_str(), &blob), EnExParam);
+			std::wstring file = shaderFolder + L"\\Shaders\\" + stringconverter::wstr(filename);
+			errchk::hres(D3DReadFileToBlob(stringconverter::wstr(filename).c_str(), &shaderBlob), EnExParam);			
 		}
+		Shader() = default;
+		Shader(const Shader& other) = default;
 		Shader(Shader&& other) = default;
-		virtual void Reflect() = 0;
 		virtual ~Shader() {};
-		std::string filename;
+
+		virtual void Reflect() = 0;
+		std::string m_passName;
 	};
+
 	class PixelShader : public Shader
 	{
 	public:
-		PixelShader(std::wstring filename) : Shader::Shader(filename)
+		struct Include : public ID3DInclude
+		{
+			STDMETHOD(Open)(D3D_INCLUDE_TYPE IncludeType, LPCSTR pFileName, LPCVOID pParentData, LPCVOID* ppData, UINT* pBytes) override;
+			STDMETHOD(Close)(THIS_ LPCVOID pData);
+		};
+		using handle = std::shared_ptr<PixelShader>;
+		PixelShader(std::string filename) : Shader::Shader(filename)
 		{
 			errchk::hres(pDevice->CreatePixelShader(
-				blob->GetBufferPointer(),
-				blob->GetBufferSize(),
+				shaderBlob->GetBufferPointer(),
+				shaderBlob->GetBufferSize(),
 				nullptr, &pPixelShader),
 				EnExParam);
 		}
-		std::string GetKey(std::wstring filename)
+		//PASS::GetPassName , Material::GetEntryPoint()
+		PixelShader(std::string passName, std::string entryPoint)
 		{
-			return typeid(PixelShader).name() + '#' + stringconverter::str(filename);			// TODO :: PSIn.tostring()+'#'+ Teqnique;
+			std::string filename("PS" + passName + ".hlsl");
+			ComPtr<ID3DBlob> errBlob;
+			errchk::hres(D3DCompileFromFile(
+				stringconverter::wstr(filename).c_str(), 
+				nullptr,	//macro 
+				nullptr,	//include interface
+				entryPoint.c_str(),
+				"ps_5_0", 
+				D3DCOMPILE_ENABLE_STRICTNESS,
+				NULL,
+				&shaderBlob,
+				&errBlob),
+				EnExParam);
+
+			errchk::hres(pDevice->CreatePixelShader(
+				shaderBlob->GetBufferPointer(),
+				shaderBlob->GetBufferSize(),
+				nullptr, &pPixelShader),
+				EnExParam);
+
+		}
+		PixelShader() = default;
+		PixelShader(const PixelShader & other) = default;
+		PixelShader(PixelShader && other) noexcept = default;
+		PixelShader& operator = (const PixelShader & other) = default;
+		PixelShader& operator = (PixelShader && other) noexcept = default;
+		~PixelShader() = default;
+		static std::string GetKey(std::wstring filename)
+		{
+			return typeid(PixelShader).name() + stringconverter::str(filename);			
 		}
 		void Bind() override {pContext->PSSetShader(pPixelShader.Get(), 0, 0);}
 		void Reflect() override;
 	private:
-		Microsoft::WRL::ComPtr<ID3D11PixelShader> pPixelShader;
+		ComPtr<ID3D11PixelShader> pPixelShader;
 	};
 	
 	class VertexShader : public Shader
 	{
 	public:
-		VertexShader(std::wstring filename) : Shader::Shader(filename)
-		{
+		using handle = std::shared_ptr<VertexShader>;
+		VertexShader(std::string filename) : Shader::Shader(filename)
+		{			
 			errchk::hres(pDevice->CreateVertexShader(
-				blob->GetBufferPointer(),
-				blob->GetBufferSize(),
+				shaderBlob->GetBufferPointer(),
+				shaderBlob->GetBufferSize(),
+				nullptr, 
+				&pVertexShader),
+				EnExParam);
+		}
+		//PASS::GetPassName , Material::GetEntryPoint()
+		VertexShader(std::string passName, std::string entryPoint)
+		{
+			std::string filename("VS" + passName + ".hlsl");
+			ComPtr<ID3DBlob> errBlob;
+			errchk::hres(D3DCompileFromFile(
+				stringconverter::wstr(filename).c_str(),
+				nullptr,	//macro 
+				nullptr,	//include interface
+				entryPoint.c_str(),
+				"vs_5_0",
+				D3DCOMPILE_ENABLE_STRICTNESS,
+				NULL,
+				&shaderBlob,
+				&errBlob),
+				EnExParam);
+
+			errchk::hres(pDevice->CreateVertexShader(
+				shaderBlob->GetBufferPointer(),
+				shaderBlob->GetBufferSize(),
 				nullptr, &pVertexShader),
 				EnExParam);
 		}
-		std::string GetKey(std::wstring filename)
+		VertexShader() = default;
+		VertexShader(const VertexShader & other) = default;
+		VertexShader(VertexShader && other) noexcept = default;
+		VertexShader& operator = (const VertexShader & other) = default;
+		VertexShader& operator = (VertexShader && other) noexcept = default;
+		~VertexShader() = default;
+
+		static std::string GetKey(std::string filename)
 		{
-			return typeid(VertexShader).name() + '#' + stringconverter::str(filename);			// TODO :: PSIn.tostring()+'#'+ Teqnique;
+			return { typeid(VertexShader).name() + filename };			
 		}
 		void Bind() override { pContext->VSSetShader(pVertexShader.Get(), 0, 0); }
 		void Reflect() override;
+		std::vector<std::string> GetSignatures();
 
 	private:
-		Microsoft::WRL::ComPtr<ID3D11VertexShader> pVertexShader;
+		ComPtr<ID3D11VertexShader> pVertexShader;
 	};
 }

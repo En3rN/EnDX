@@ -7,9 +7,9 @@ namespace En3rN::DX
 	{
 		D3D11_DEPTH_STENCIL_DESC depthStencilDesc{};
 		depthStencilDesc.DepthEnable = TRUE;
-		depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-		depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
-		depthStencilDesc.StencilEnable = TRUE;
+		depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK::D3D11_DEPTH_WRITE_MASK_ALL;
+		depthStencilDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS;
+		depthStencilDesc.StencilEnable = FALSE;
 		depthStencilDesc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
 		depthStencilDesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
 		depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_NEVER;
@@ -24,15 +24,15 @@ namespace En3rN::DX
 
 		switch (state)
 		{
-		case En3rN::DX::Stencil::State::DepthStencilEnabled:
-			break;
 		case En3rN::DX::Stencil::State::DepthOnly:
-			depthStencilDesc.StencilEnable = FALSE;
+			break;
+		case En3rN::DX::Stencil::State::StencilEnabled:
+			depthStencilDesc.StencilEnable = TRUE;
 			break;
 		case En3rN::DX::Stencil::State::DepthOnlyFuncLessEqualNoWrite:
 			depthStencilDesc.StencilEnable = FALSE;
-			depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
-			depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+			depthStencilDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL;	// D3D11_COMPARISON_LESS_EQUAL D3D11_COMPARISON_EQUAL
+			depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK::D3D11_DEPTH_WRITE_MASK_ZERO;
 			break;
 		}
 

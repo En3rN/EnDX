@@ -10,6 +10,8 @@
 #include "Rasterizer.h"
 #include "InputLayout.h"
 #include "BindableManager.h"
+#include "Transform.h"
+#include "Material.h"
 
 
 namespace En3rN::DX
@@ -39,24 +41,28 @@ namespace En3rN::DX
             { 1.0f, 1.0f},
             { 0.0f, 1.0f}
         };
+        auto vs = BindableManager::Query<VertexShader>  ("VSPosTex.cso");
+        auto ps = BindableManager::Query<PixelShader>   ("PSTexture.cso");
+        auto signatures = vs->GetSignatures();
         enBuffer buf;
         buf.add_element(positions,std::size(positions));
         buf.add_element(texCoords,std::size(texCoords));
-        buf.create_buffer();
-        
+        buf.create_buffer(signatures);
+
         std::vector<uint16_t> indecies{ 0,1,2,2,3,0 };
         indexCount = (UINT)std::size(indecies);
-        auto vs =   std::make_unique <VertexShader> (L"VSPosTex.cso");
-        auto ps =   std::make_unique <PixelShader>  (L"PSTexture.cso");
-        AddBindable(std::make_unique <VertexBuff>   (buf));
-        AddBindable(std::make_unique <IndexBuffer>  (indecies));
-        AddBindable(std::make_unique <InputLayout>  (buf.input_element_desc(),vs.get()->GetBlob()));
+
+        AddBindable(BindableManager::Query<VertexBuffer>          (buf, "plane"));
+        AddBindable(BindableManager::Query<IndexBuffer>         (indecies, "plane"));
+        AddBindable(BindableManager::Query<InputLayout>         (signatures, vs->GetBlob(),"plane"));
+        AddBindable(BindableManager::Query<Texture>             ("gafi.jpg"));
+        AddBindable(BindableManager::Query<Sampler>             (Sampler::State::Wrap));
+        AddBindable(BindableManager::Query<Rasterizer>          (Rasterizer::State::None));
+        AddBindable(BindableManager::Query<Material::ConstantBuffer>(1, 1));
+        AddBindable(BindableManager::Query<Transform::ConstantBuffer > (1, 1));
         AddBindable(std::move(vs));
         AddBindable(std::move(ps));
-        AddBindable(BindableManager::Query<Texture>      (L"gafi.jpg"));
-        AddBindable(std::make_unique <Sampler>      (Sampler::State::Border));
-        AddBindable(std::make_unique <Rasterizer>   (State::None));
-        AddBindable(std::make_unique <Transform>    (Transform::Data{ viewMatrix }, *this));
+
         behavior = Behaviors::Get(id);
     }
     Plane::Plane(Vec3f pos) : Plane()
@@ -68,7 +74,7 @@ namespace En3rN::DX
     }
     void Plane::Update(float dt)
     {
-        behavior(*this, dt);        
+        behavior(*this, dt);      
     }
     void Plane::Draw()
     {

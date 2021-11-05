@@ -35,17 +35,17 @@ namespace En3rN::DX
             UpdateScene(deltaTime);
             //DrawFrame
             DrawScene();
-
             gfx.EndFrame();
         }
     return false;
     }
     bool EnDX::ProcessMsg()
     {
-        MSG msg;
+        MSG msg{};
         if (PeekMessage(&msg, nullptr, NULL, NULL, PM_REMOVE) > 0)
         {
-            if (msg.message == WM_QUIT) return false;
+            if (msg.message == WM_QUIT) 
+                return false;
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
@@ -81,16 +81,19 @@ namespace En3rN::DX
     }
     bool EnDX::LoadScene()
     {
-        scenes.emplace_back(std::make_unique<Scene>());
+        scenes.emplace_back(std::make_unique<Scene>(&GetWindow().GetGfx().GetRenderer()));
         auto& scene = *scenes.back().get();
         RandomFactory factory;
        
-        for (int i = 0; i < 100; i++)
+        /*for (int i = 0; i < 100; ++i)
         {
             scene.AddDrawable(factory());
-        };
+        };*/
+        //scene.AddDrawable(std::make_unique<Cube>());
+        scene.AddModel(Model::LoadModel("nanosuit.obj"));
 
-        scene.AddDrawable(std::make_unique<Skybox>(L"0-desert-skybox.png"));
+        /*scene.AddDrawable(std::make_unique<Skybox>("0-desert-skybox.png"));*/
+        
         
         return false;
     }
@@ -103,6 +106,6 @@ namespace En3rN::DX
     void EnDX::DrawScene()
     {
         for (auto& scene : scenes)
-            scene.get()->Draw();
+            scene.get()->Draw();        
     }
 }

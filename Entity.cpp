@@ -1,34 +1,31 @@
 #include "Entity.h"
+#include "Component.h"
 #include "logger.h"
 #include "Window.h"
 
-namespace En3rN
+namespace En3rN::DX
 {
 	using namespace DirectX;
-	using namespace DX;
 
 	size_t Entity::idCounter = -1;
 	Entity::Entity() : pos{}, dir{ 0.0f,0.0f,0.0f }, angles{ .0f,.0f,0.f }, scale{ 1.0f ,1.0f ,1.0f }, speed(1), acceleration(0)
 	{ 
-		idCounter++;
-		id = idCounter;
+		id = ++idCounter;
 		name = std::to_string(idCounter);
-		UpdateViewMatrix(); 
 	}
 	
 	Entity::Entity(float posx, float posy, float posz, float dirx, float diry, float dirz, float scalex, float scaley, float scalez)
 	{
-		idCounter++;
-		id = idCounter;
+		id = ++idCounter;
 		SetPosition(posx, posy, posz);
 		SetDirection(dirx, diry, dirz);
 		SetScale(scalex, scaley, scalez);
-		UpdateViewMatrix();
 	}
-	void Entity::Move(Vec3f& move)
+	Entity::Entity(Vec3f&& position) : pos(std::move(position)), dir(0,0,0), angles(0,0,0), scale(1,1,1), speed(1), acceleration(0)
 	{
-		pos += move;
+		id = ++idCounter;
 	}
+	
 	void Entity::SetPosition(float x, float y, float z)
 	{
 		Vec3f p = { x,y,z };
@@ -45,7 +42,7 @@ namespace En3rN
 	}
 	void Entity::SetDirectionFromAngles() {
 		Vec3 base(.0f, .0f, 1.f);
-		dir = base.Rotate(angles.x, angles.y, angles.z);
+		dir = base.Rotate(angles.y, angles.x, angles.z);
 	}
 	void Entity::SetDirection(Vec3f& direction) 
 	{
@@ -60,18 +57,28 @@ namespace En3rN
 	{
 		this->scale = scale;
 	}
-	void Entity::UpdateViewMatrix()
+
+	void Entity::SetName(std::string&& name)
 	{
-		viewMatrix =
-			XMMatrixRotationX(angles.x) *
-			XMMatrixRotationY(angles.y) *
-			XMMatrixRotationZ(angles.z) *
-			XMMatrixScaling(scale.x, scale.y, scale.z) *
-			XMMatrixTranslation(pos.x, pos.y, pos.z);
+		this->name = std::move(name);
 	}
-	const DirectX::XMMATRIX& Entity::GetViewMatrix() 
-	{ 
-		UpdateViewMatrix();
-		return viewMatrix; 
+
+	void Entity::AddComponent(const std::string& key, Component::Base::handle&& component)
+	{
+		components[key] = std::move(component);
+	}
+
+	Component* Entity::GetComponent(const std::string& key) 
+	{
+		return components.at(key).get();
+	}
+	
+	DirectX::XMMATRIX Entity::GetViewMatrix() const
+	{		
+		return DirectX::XMMatrixTranspose(
+			XMMatrixRotationRollPitchYaw(angles.y, angles.x, angles.z) *
+			XMMatrixScaling(scale.x, scale.y, scale.z) *
+			XMMatrixTranslation(pos.x, pos.y, pos.z)
+		);
 	}
 };

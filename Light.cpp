@@ -1,11 +1,25 @@
 #include "Light.h"
 
-En3rN::DX::DirecionalLight::DirecionalLight()
+namespace En3rN::DX
 {
-	SetDirection(.5f, -.5f, 0.0f);
-}
+	void Light::OnAttach()
+	{
+		//register with owner
+		//register with renderer
+	}
 
-En3rN::DX::DirecionalLight::DirecionalLight(Vec3f dir)
-{
-	SetDirection(dir);
+	void Light::Bind()
+	{
+		//submit updated data;
+	}
+
+	void Light::OnUpdate()
+	{
+		//update position/direction
+	}
+
+	void Light::OnDetach()
+	{
+		//remove from renderer
+	}
 }

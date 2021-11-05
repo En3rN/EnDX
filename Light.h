@@ -1,17 +1,28 @@
 #pragma once
-#include "Entity.h"
+
+
+#include "Component.h"
 #include "Buffer.h"
+
 namespace En3rN::DX
 {
-	class Light : public Entity
+	class LightCB;
+	class Light : public Component
 	{
 	public:
 		struct Data
 		{
 			alignas(16)Vec3f color;
 		};
+		std::shared_ptr<LightCB> GetLightCB() { return m_cBuff; }
+		//components funcs
+		virtual void OnAttach() override;
+		virtual void Bind() override;
+		virtual void OnUpdate() override;
+		virtual void OnDetach() override;
+
 	protected:
-		
+		std::shared_ptr<LightCB> m_cBuff;
 	};
 	class DirecionalLight : public Light
 	{
@@ -21,8 +32,6 @@ namespace En3rN::DX
 			alignas(16)Vec3f color;
 			alignas(16)Vec3f direction;
 		};
-		DirecionalLight();
-		DirecionalLight(Vec3f dir);
 	private:
 	};
 	class PointLight : public Light
@@ -34,19 +43,10 @@ namespace En3rN::DX
 			alignas(16)Vec3f position;
 		};
 	};
-	class LightCB : public ConstantBuffer<std::vector<LightCB>>
+	class LightCB : public TConstantBuffer<LightCB>
 	{
-	public:
-		using Data = std::vector<LightCB>;
-		
-			
-		
-		
-	private:
-		Light::Data ambient;
-		DirecionalLight::Data directional;
-		PointLight::Data point;
 
+	private:
 	};
 }
 

@@ -5,13 +5,11 @@
 
 namespace En3rN
 {
-
-	template <typename ptrClasstype>
+	template <typename smartPtrType>
 	class iHandle
 	{
 	public:
-		using handle = ptrClasstype;
-
+		using handle = smartPtrType;
 	};
 }
 

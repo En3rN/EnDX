@@ -51,7 +51,7 @@ namespace En3rN::DX
 		static HINSTANCE	hInstance;
 		static uint8_t		wCount;
 		bool				showMessage = false;
-		bool				init = false;
+		//bool				init = false;
 		bool				cursorEnabled = true;
 	};
 }

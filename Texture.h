@@ -1,7 +1,8 @@
 #pragma once
 #include "end3d11.h"
 #include "iBindable.h"
-#include "..\DirectXTex\DirectXTex\DirectXTex.h"
+#include "enString.h"
+#include <filesystem>
 #include <string>
 
 namespace En3rN::DX
@@ -9,15 +10,16 @@ namespace En3rN::DX
 	class Texture : public Bindable 
 	{
 	public:
-		using Container = std::vector<ID3D11ShaderResourceView*>;
+		using handle = std::shared_ptr<Texture>;
+		using Container = std::vector<std::shared_ptr<Texture>>;
 		enum class Type{Default, CubeMap};
-		Texture(std::wstring file, Type type= Type::Default);
-		static std::string GetKey(std::wstring filename, Type type= Type::Default);
+		Texture(std::filesystem::path file, UINT slot=0, Type type= Type::Default);
 		void Bind();
 	private:
-		//std::string filename;
-		ComPtr<ID3D11Resource> pTexture;
+		UINT							 m_slot;
 		ComPtr<ID3D11ShaderResourceView> pTextureView;
 	};
+	
+
 }
 

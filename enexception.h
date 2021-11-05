@@ -52,27 +52,20 @@ namespace En3rN
 			errMsg += enNL + dxInfo + enNL + file + enNL + line;
 		}
 	};
-	class EnExHRDXInfo : public EnExHR
+	class EnExDXInfo : public EnExcept
 	{
 	public:
-		EnExHRDXInfo(HRESULT hr, ID3D11InfoQueue* dxInfoQ, std::string afile, int aline)
+		EnExDXInfo(std::string afile, int aline)
 		{
+			if (!En3rN::DX::InfoManager::Empty()) {
+				auto iq = En3rN::DX::InfoManager::GetInfo();
+				for (auto& i : iq)
+					dxInfo += i;
+			}
 			type = "EnExDXInfo";
 			file += afile;
 			line += std::to_string(aline);
-			errMsg += std::system_category().message(hr);
-			
-			for (auto i = 0; i < dxInfoQ->GetNumStoredMessages(); i++)
-			{
-				SIZE_T message_size = 0;
-				dxInfoQ->GetMessageA(i, nullptr, &message_size); //,__FILE__,__LINE__); //get the size of the message
 
-				D3D11_MESSAGE* message = (D3D11_MESSAGE*)malloc(message_size); //allocate enough space
-				dxInfoQ->GetMessageA(i, message, &message_size);//, __FILE__, __LINE__); //get the actual message
-				if (message)dxInfo += message->pDescription;
-				dxInfo += enNL;
-				free(message);
-			}
 			errMsg += enNL + dxInfo +enNL+ file + enNL + line;
 		}
 	};
@@ -89,11 +82,6 @@ namespace En3rN
 		inline static void test(HRESULT hr)
 		{
 			throw EnExHR(hr, __FILE__, __LINE__);
-		};
-		static void hres(HRESULT hr, ID3D11InfoQueue* dxInfoQ, std::string file, int line)
-		{
-			if (hr == S_OK) return;
-			throw EnExHRDXInfo(hr, dxInfoQ, file, line);
 		};
 	};
 }
