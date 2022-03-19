@@ -4,6 +4,7 @@
 #include "Cube.h"
 #include "Plane.h"
 #include "enMath.h"
+#include "vec.h"
 #include <random>
 #include <memory>
 
@@ -25,6 +26,21 @@ namespace En3rN::DX
 				return {};
 			}
 		}
+		//Pass -1 for random or pass preset
+		Vec3f Angles(float x =-1, float y= -1, float z= -1)
+		{
+			std::uniform_real_distribution<float> angleDist{ -halfPI, halfPI };
+			x == -1 ? x = angleDist(rng) : x = x;
+			y == -1 ? y = angleDist(rng) : y = y;
+			z == -1 ? z = angleDist(rng) : z = z;
+			return { x,y,z };
+		}
+		size_t UID()
+		{
+			std::uniform_int_distribution<size_t> uid;
+			return uid(rng);
+		}
+		
 	private:
 		std::mt19937 rng{ std::random_device{}() };
 		std::uniform_real_distribution<float> xdist{-10.0f,10.0f };
@@ -35,6 +51,7 @@ namespace En3rN::DX
 		std::uniform_int_distribution<int> latdist{ 5,20 };
 		std::uniform_int_distribution<int> longdist{ 10,40 };
 		std::uniform_int_distribution<int> typedist{ 0,1 };
+
 	};
 
 

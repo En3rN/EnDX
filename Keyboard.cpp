@@ -6,6 +6,22 @@
 
 namespace En3rN::DX
 {
+    bool Keyboard::OnEvent(Event& e)
+    {
+        if(e.category == Event::Category::Keyboard)
+        {
+            switch(e.type)
+            {
+            case Event::Type::KeyUp:
+                OnKeyRelease((uint8_t)e.lparam);
+            case Event::Type::KeyDown:
+                OnKeyPress((uint8_t)e.lparam);
+            default:
+                break;
+            }
+        }
+        return false;
+    }
     void En3rN::DX::Keyboard::OnKeyPress(uint8_t keyCode)
     {        
         keystate.set(keyCode);

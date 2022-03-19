@@ -3,14 +3,14 @@
 #include <chrono>
 #include <string>
 namespace En3rN
-{
+{	
 	using ms = std::milli;
 	using ns = std::nano;
 	using sek = std::ratio<1>;
-	using min = std::ratio<60,1>;
+	using min = std::ratio<60, 1>;
 	
 	template  < typename retVal = float,
-				typename dur = ms >
+				typename dur = std::chrono::milliseconds >
 			 				
 	class Timer
 	{
@@ -23,7 +23,7 @@ namespace En3rN
 			if (func != "")
 			{
 				std::string out = "[Timer][" + func + "] -- " + GetElapsedString() + " --\n";
-				DX::Logger::Debug(out.c_str());
+				OutputDebugString(out.c_str());
 			}
 		}
 		void ReStart()

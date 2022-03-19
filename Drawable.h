@@ -8,7 +8,7 @@
 
 namespace En3rN::DX
 {
-	class Drawable : public Entity, public GfxResources, unPtr(Drawable)
+	class Drawable :  public GfxResources, unPtr(Drawable)
 	{
 		friend class Behaviors;
 	public:

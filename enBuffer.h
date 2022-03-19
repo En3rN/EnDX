@@ -26,25 +26,25 @@ namespace En3rN::DX
 
 			friend class enBuffer;
 			Element() = default;
+			//Element(Data&& data,);
 			Element(const Element& other) = default;
 			Element(Element&& other) noexcept= default;
 			Element& operator = (const Element& other) = default;
 			Element& operator = (Element&& other) noexcept = default;
 			virtual ~Element() = default;
 
-			const std::string&		semantic()		{ return m_semantic;}
-			size_t					stride()		{ return m_stride; }
-			size_t					count()			{ return m_count; }
-			size_t					size()			{ return m_size; }
-			size_t					hash()			{ return m_hash; }
-			uint8_t*				data()			{ return m_data.data(); }
-			const uint8_t*			data()	const	{ return m_data.data(); }
+			const std::string&		semantic()	const	{ return m_semantic;}
+			const size_t			stride()	const	{ return m_stride; }
+			const size_t			count()		const	{ return m_count; }
+			const size_t			size()		const	{ return m_count * m_stride; }
+			const size_t			hash()		const	{ return m_hash; }
+			const uint8_t*			data()		const	{ return m_data.data(); }
+			uint8_t*				data()				{ return m_data.data(); }
 			
 		protected:
 			std::string		m_semantic;
 			size_t			m_stride;	//size of stride
 			size_t			m_count;	//stridecount
-			size_t			m_size;		//total size
 			size_t			m_hash;		//typeid.hash
 			enBuffer::Data	m_data;		//data
 		};
@@ -55,31 +55,32 @@ namespace En3rN::DX
 			return *this;
 		}
 		template<typename T, std::enable_if_t<std::is_standard_layout_v<T>,bool> = true>
-		void	add_element(const T& data, const std::string& semantic, size_t stride = 0, size_t count = 1) // adds element to layout -- pass in stride and count if full buffer is passed 
-		{		
-			
+		void	add_element(const T& data, const std::string& semantic, size_t count = 1, size_t stride = 0) // adds element to layout -- pass in stride and count if full buffer is passed 
+		{
+			if(stride == 0) {
+				if constexpr(std::is_bounded_array_v<T>)
+					stride = sizeof(T) / count;
+				else
+					stride = sizeof(T);
+			}
+
 			m_elements.emplace_back(Element());
 			auto& e = m_elements.back();
 			e.m_semantic = semantic;
-			stride == 0 ? e.m_stride = sizeof(T) : e.m_stride = stride;
+			e.m_stride = stride;
 			e.m_count = count;
-			e.m_size = stride * count;
 			e.m_hash = typeid(T).hash_code();
-			e.m_data.resize(e.m_size);
-			if constexpr (std::is_array_v<T[]>)
-			{
-				for (auto i = 0; i < count; ++i)
-					memcpy(&e.m_data[i * stride], &data[i], stride);
-			}
-			else 
-				memcpy(&e.m_data[0], &data, e.m_size);
+			e.m_data.resize(e.size());
+			for (auto i = 0; i < count; ++i)
+				memcpy(&e.m_data[i * stride], &data[i], stride);
+	
 		}
 		void	add_element (const Element* e , size_t count)
 		{
 			auto element = e[0];
 			element.m_count = count;
-			element.m_size = count * element.m_stride;
-			element.m_data.resize(element.m_size);
+			
+			element.m_data.resize(element.size());
 			for (auto i = 1; i < count; ++i)
 			{
 				memcpy(element.m_data.data() + i * element.m_stride,
@@ -121,10 +122,9 @@ namespace En3rN::DX
 				m_semantic = "Position";
 				m_count = 1;
 				m_hash = typeid(this).hash_code();
-				m_stride = sizeof(data);
-				m_size = m_stride * m_count;
-				m_data.resize(m_size);
-				memcpy(m_data.data(), &data, m_size);
+				m_stride = sizeof(data);				
+				m_data.resize(size());
+				memcpy(m_data.data(), &data, size());
 			}
 		};
 		struct Color : public enBuffer::Element
@@ -139,10 +139,9 @@ namespace En3rN::DX
 				m_semantic = "Color";
 				m_count = 1;
 				m_hash = typeid(this).hash_code();
-				m_stride = sizeof(data);
-				m_size = m_stride * m_count;
-				m_data.resize(m_size);
-				memcpy(m_data.data(), &data, m_size);
+				m_stride = sizeof(data);				
+				m_data.resize(size());
+				memcpy(m_data.data(), &data, size());
 			};
 			Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 			{
@@ -150,10 +149,9 @@ namespace En3rN::DX
 				m_semantic = "Color";
 				m_count = 1;
 				m_hash = typeid(this).hash_code();
-				m_stride = sizeof(data);
-				m_size = m_stride * m_count;
-				m_data.resize(m_size);
-				memcpy(m_data.data(), &data, m_size);
+				m_stride = sizeof(data);				
+				m_data.resize(size());
+				memcpy(m_data.data(), &data, size());
 			};
 			
 		};
@@ -165,10 +163,9 @@ namespace En3rN::DX
 				m_semantic = "TexCoord";
 				m_count = 1;
 				m_hash = typeid(this).hash_code();
-				m_stride = sizeof(data);
-				m_size = m_stride * m_count;
-				m_data.resize(m_size);
-				memcpy(m_data.data(), &data, m_size);
+				m_stride = sizeof(data);				
+				m_data.resize(size());
+				memcpy(m_data.data(), &data, size());
 			};
 			
 		};
@@ -184,10 +181,9 @@ namespace En3rN::DX
 				m_semantic = "Normal";
 				m_count = 1;
 				m_hash = typeid(this).hash_code();
-				m_stride = sizeof(data);
-				m_size = m_stride * m_count;
-				m_data.resize(m_size);
-				memcpy(m_data.data(), &data, m_size);
+				m_stride = sizeof(data);				
+				m_data.resize(size());
+				memcpy(m_data.data(), &data, m_stride);
 			}
 			
 		};

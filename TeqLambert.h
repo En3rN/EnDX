@@ -8,26 +8,25 @@
 #include "Buffer.h"
 #include "Material.h"
 #include "Transform.h"
+#include "Blend.h"
 
 
 
 namespace En3rN::DX
 {
 	class Model;
-	class TeqLambertian : public Teqnique
+	//class for initializing default teqniques
+	class Teqnique::Lambertian : public Teqnique
 	{
 	public:
-		using handle = std::shared_ptr<TeqLambertian>;
-		TeqLambertian()
+		Teqnique::Lambertian()
 		{
-			
-			AddStep(Step(Pass::Name::Lambertian,
+			AddStep(Step(Pass::Name::Phong,
 				BindableManager::Query<Sampler>(Sampler::State::Wrap),
 				BindableManager::Query<Rasterizer>(Rasterizer::State::Back),
+				BindableManager::Query<Blender>(Blender::State::Default),
 				BindableManager::Query<Stencil>(Stencil::State::DepthOnly),
-				BindableManager::Query<Material::ConstantBuffer> (1,1),
-				BindableManager::Query<Transform::ConstantBuffer> (1,1),
-				BindableManager::Query<PixelShader>("test.cso")
+				BindableManager::Query<Transform::ConstantBuffer> (1,1)
 			));
 		}
 	private:

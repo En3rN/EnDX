@@ -4,8 +4,7 @@ namespace En3rN::DX
 {
 	Controllable::Controllable() : rawCapture(false)
 	{
-		keyMappings = { 'W','S','A','D',VK_SPACE,VK_CONTROL,'Q','E','R','F', VK_TAB };
-		Register();
+		keyMappings = { 'W','S','A','D',VK_SPACE,VK_CONTROL,'Q','E','R','F', VK_MENU };
 	}
 	Controllable::Controllable( uint8_t forward, uint8_t backward,
 								uint8_t left, uint8_t right,

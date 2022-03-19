@@ -36,7 +36,7 @@ namespace En3rN::DX
 			break;
 		}
 
-		errchk::hres(pDevice->CreateDepthStencilState(&depthStencilDesc, &pStencilState), EnExParam);
+		errchk::hres(pDevice->CreateDepthStencilState(&depthStencilDesc, &pStencilState));
 	}
 	void Stencil::Bind()
 	{

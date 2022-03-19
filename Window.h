@@ -12,13 +12,13 @@
 
 namespace En3rN::DX
 {	
-	class Window : shPtr(Window) , public EventListener
+	class Window : shPtr(Window) , public Event::Listener
 	{
 	public:
 		Window(uint16_t with, uint16_t height, bool fullscreen = false);
 		~Window();
 		static HWND GetHWND();
-		static EventHandler& GetEventHandler();
+		static Event::Handler& GetEventHandler();
 		Graphics& GetGfx();
 		Keyboard& GetKbd();
 		Mouse& GetMouse();
@@ -41,7 +41,7 @@ namespace En3rN::DX
 		HWND				hWnd;
 		uint16_t			WindowWidth;
 		uint16_t			WindowHeight;
-		EventHandler		eventHandler;
+		Event::Handler		eventHandler;
 		Graphics::handle	pGfx;
 		Keyboard			kbd;
 		Mouse				mouse;
@@ -51,7 +51,6 @@ namespace En3rN::DX
 		static HINSTANCE	hInstance;
 		static uint8_t		wCount;
 		bool				showMessage = false;
-		//bool				init = false;
 		bool				cursorEnabled = true;
 	};
 }

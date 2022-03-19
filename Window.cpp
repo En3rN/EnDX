@@ -3,8 +3,6 @@
 #include "EnDX.h"
 #include "WindowsMessageMap.h"
 #include "enexception.h"
-#include "imgui_impl_win32.h"
-#include "imgui_impl_dx11.h"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -42,14 +40,18 @@ namespace En3rN::DX
 		wr.top = 100;
 		wr.bottom = WindowHeight + wr.top;
 
-		AdjustWindowRect(&wr, WS_CAPTION | WS_SYSMENU | WS_OVERLAPPED, FALSE);
+		//DWORD style = WS_CAPTION | WS_SYSMENU | WS_OVERLAPPED;
+		DWORD style  = WS_MAXIMIZE | WS_POPUPWINDOW;
+		
+
+		AdjustWindowRect(&wr, style,FALSE);
 		hWnd = CreateWindow(appName.c_str(), wName.c_str(),
-			WS_CAPTION | WS_SYSMENU | WS_OVERLAPPED,
+			style,
 			wr.left, wr.top, wr.right - wr.left, wr.bottom - wr.top,
 			nullptr, nullptr, hInstance, this);
 		if (!hWnd) {
 			OutputDebugString("Window Creation Failed");
-			throw EnExHR((HRESULT)GetLastError(), EnExParam);
+			throw EnExHR((HRESULT)GetLastError());
 			return;
 		}
 		else {
@@ -63,7 +65,7 @@ namespace En3rN::DX
 		rid.hwndTarget = nullptr;
 		if (RegisterRawInputDevices(&rid, 1, sizeof(rid)) == FALSE)
 		{
-			throw EnExcept("FAILED to register RawMouse",EnExParam);
+			throw EnExcept("FAILED to register RawMouse", std::source_location::current());
 		}
 	}
 	Window::~Window(){
@@ -76,7 +78,7 @@ namespace En3rN::DX
 	HWND Window::GetHWND(){
 		return EnDX::Get().GetWindow().hWnd;
 	}
-	EventHandler& Window::GetEventHandler()
+	Event::Handler& Window::GetEventHandler()
 	{
 		return EnDX::Get().GetWindow().eventHandler;
 	}
@@ -174,13 +176,14 @@ namespace En3rN::DX
 			switch (e.type)
 			{
 			case Event::Type::RawCapture:
+				mouse.ToggleRawCaptureMode();
 				if (cursorEnabled){
 					DisableCursor();
-					return true;
+					return false;
 				}
 				else{
 					EnableCursor();
-					return true;
+					return false;
 				}
 			case Event::Type::FullScreen:
 				pGfx->SetFullscreen();
@@ -193,21 +196,25 @@ namespace En3rN::DX
 		}
 		return false;
 	}
-	LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
-		if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam)) return true;
-		if (showMessage) {
+	LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+	{
+		/*if(showMessage) {
 			WindowsMessageMap msgmap;
 			std::string msg = msgmap(message, wParam, lParam);
-			//Logger::Debug(msg.c_str());
-			//OutputDebugString(msg.c_str());
-		}
+			Logger::Debug(msg.c_str());
+		}*/
+		if(ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
+			return true;
+		
 		switch (message)
 		{
+		
 		case WM_KILLFOCUS:
 			kbd.Clear();
-			mouse.ToggleRawCaptureMode();
-			//EnableCursor();
-			return 0;
+			mouse.Flush();
+			if(!cursorEnabled)
+				eventHandler.AddEvent(Event(Event::Category::Window, Event::Type::RawCapture, 0, 0));
+			break;
 		case WM_SIZE: {
 			if (pGfx) {
 				UINT width = LOWORD(lParam);
@@ -219,28 +226,30 @@ namespace En3rN::DX
 		}
 		case WM_CLOSE:
 			if (wCount < 2) PostQuitMessage(69);
-			return 0;
+			break;
 			// keyboard
 		case WM_SYSKEYDOWN:
 		case WM_KEYDOWN:
 		{
+			Logger::Debug("Press %c", wParam);
 			if (ImGui::GetIO().WantCaptureKeyboard) break;
-			eventHandler.AddEvent(Event::Create(Event::Category::Keyboard, Event::Type::KeyDown, wParam, lParam));
+			eventHandler.AddEvent(Event(Event::Category::Keyboard, Event::Type::KeyDown, wParam, lParam));
 			kbd.OnKeyPress((uint8_t)wParam);
 			break;
 		}
 		case WM_SYSKEYUP:
 		case WM_KEYUP:
 		{
+			Logger::Debug("Release %c", wParam);
 			if (ImGui::GetIO().WantCaptureKeyboard) break;
-			eventHandler.AddEvent(Event::Create(Event::Category::Keyboard, Event::Type::KeyUp, wParam, lParam));
+			eventHandler.AddEvent(Event(Event::Category::Keyboard, Event::Type::KeyUp, wParam, lParam));
 			kbd.OnKeyRelease((uint8_t)wParam);
 			break;
 		}
 			//mouse
 		case WM_MOUSEMOVE:
 		{
-			eventHandler.AddEvent(Event::Create(Event::Category::Mouse, Event::Type::Move, wParam, lParam));
+			eventHandler.AddEvent(Event(Event::Category::Mouse, Event::Type::Move, wParam, lParam));
 			POINTS pos = MAKEPOINTS(lParam);
 			mouse.OnMove(pos.x, pos.y);
 			break;
@@ -249,7 +258,8 @@ namespace En3rN::DX
 		case WM_RBUTTONDOWN:
 		case WM_MBUTTONDOWN:
 		{
-			if (ImGui::GetIO().WantCaptureMouse == true) break;
+			Logger::Debug("Press %c", (uint8_t)wParam);
+			if (ImGui::GetIO().WantCaptureMouse) break;
 			Event e(Event::Category::Mouse, Event::Type::KeyDown, wParam, lParam);
 			mouse.OnPress((uint8_t)wParam);
 			break;
@@ -258,7 +268,8 @@ namespace En3rN::DX
 		case WM_RBUTTONUP:
 		case WM_MBUTTONUP:
 		{
-			if (ImGui::GetIO().WantCaptureMouse == true) break;
+			Logger::Debug("Release %c", (uint8_t)wParam);
+			if (ImGui::GetIO().WantCaptureMouse) break;
 			Event e(Event::Category::Mouse, Event::Type::KeyUp, wParam, lParam);
 			mouse.OnRelease((uint8_t)wParam);
 			break;
@@ -295,46 +306,49 @@ namespace En3rN::DX
 				{
 					OutputDebugString("Style\n");
 					pGfx->SetPresent(false);
-					eventHandler.AddEvent(Event::Create(Event::Category::Window, Event::Type::FullScreen, wParam, lParam));
+					eventHandler.AddEvent(Event(Event::Category::Window, Event::Type::FullScreen, wParam, lParam));
 				}
 			}
 			break;
 		case WM_INPUT:
 		{
-			Timer t("WM_INPUT");
-			if (!mouse.RawCapture()){return true;}
-			UINT size{};
-			// first get the size of the input data
-			if (GetRawInputData(
-				reinterpret_cast<HRAWINPUT>(lParam),
-				RID_INPUT,
-				nullptr,
-				&size,
-				sizeof(RAWINPUTHEADER)) == -1)
-			{
-				// bail msg processing if error
-				break;
+			//Timer t("WM_INPUT");
+			if(mouse.RawCapture()) {
+				UINT size{};
+				// first get the size of the input data
+				if(GetRawInputData(
+					reinterpret_cast<HRAWINPUT>(lParam),
+					RID_INPUT,
+					nullptr,
+					&size,
+					sizeof(RAWINPUTHEADER)) == -1)
+				{
+					// bail msg processing if error
+					break;
+				}
+				rawBuffer.resize(size);
+				// read in the input data
+				if(GetRawInputData(
+					reinterpret_cast<HRAWINPUT>(lParam),
+					RID_INPUT,
+					rawBuffer.data(),
+					&size,
+					sizeof(RAWINPUTHEADER)) != size)
+				{
+					// bail msg processing if error
+					break;
+				}
+				// process the raw input data
+				auto& ri = reinterpret_cast<const RAWINPUT&>(*rawBuffer.data());
+				if(ri.header.dwType == RIM_TYPEMOUSE &&
+					(ri.data.mouse.lLastX != 0 || ri.data.mouse.lLastY != 0))
+				{
+					mouse.OnRawDelta(ri.data.mouse.lLastX, ri.data.mouse.lLastY);
+				}
+				if(ri.header.dwType == RIM_TYPEKEYBOARD)
+					Logger::Debug("RIM_TYPEKEYBOARD");
+				return true;
 			}
-			rawBuffer.resize(size);
-			// read in the input data
-			if (GetRawInputData(
-				reinterpret_cast<HRAWINPUT>(lParam),
-				RID_INPUT,
-				rawBuffer.data(),
-				&size,
-				sizeof(RAWINPUTHEADER)) != size)
-			{
-				// bail msg processing if error
-				break;
-			}
-			// process the raw input data
-			auto& ri = reinterpret_cast<const RAWINPUT&>(*rawBuffer.data());
-			if (ri.header.dwType == RIM_TYPEMOUSE &&
-				(ri.data.mouse.lLastX != 0 || ri.data.mouse.lLastY != 0))
-			{
-				mouse.OnRawDelta(ri.data.mouse.lLastX, ri.data.mouse.lLastY);
-			}
-			return true;
 		}
 		}
 		return DefWindowProc(hWnd, message, wParam, lParam);

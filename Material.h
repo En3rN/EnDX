@@ -2,6 +2,7 @@
 #include "Texture.h"
 #include "Buffer.h"
 #include "Shader.h"
+#include "Teqnique.h"
 #include <bitset>
 #include <stdint.h>
 #include <vector>
@@ -17,25 +18,21 @@ namespace En3rN::DX
 		using Index = uint32_t;
 		enum class Map { Diffuse, Normal, Specular };
 		
+		// vec4f diff, vec3f specColor, float sIntenity, vec3f specPow
 		struct Data
 		{
 			Vec4f				diffuse;
-			Vec4f				specular;
-			Vec4f				emissive;
-			Vec4f				specularPower;
+			Vec3f				specular;
+			float				specularPower;
+			Vec3f				emissive;
+			float				specularIntensity;
 		};
-		/*class ConstantBuffer : public PSConstantBuffer<Data>
-		{
-		public:
-			using handle = std::shared_ptr<ConstantBuffer>;
-			ConstantBuffer(UINT count, UINT slot = 1, UINT offset=0) :
-				PSConstantBuffer<Data>(count, slot) {}
-		};*/
+		
 		using ConstantBuffer = PSConstantBuffer<Data>;
 
 		Material() = default;
-		Material(const aiMaterial* aimaterial);
-		Material(Vec4f&& diffuse, Vec4f&& specular, Vec4f&& emissive, float specPower );
+		Material(const aiMaterial* aimaterial, std::filesystem::path modelPath="");
+		Material(Material::Data && data);
 		Material(const Material & other) = default;
 		Material(Material && other) = default;
 		Material& operator = (const Material & other) = default;
@@ -43,29 +40,37 @@ namespace En3rN::DX
 		~Material() = default;
 
 		ConstantBuffer& GetMaterialConstantBuffer() { return *m_constantBuffer.get(); }
+		const Data& GetData() const { return m_data; }
 
 		auto Size() const {return UINT{ sizeof Data };};
 
 		void SetDiffuse				(Vec4f&& diffuse);
-		void SetSpecular			(Vec4f&& specular);
-		void SetEmissive			(Vec4f&& emissive);
+		void SetSpecular			(Vec3f&& specular);
+		void SetEmissive			(Vec3f&& emissive);
+		void SetSpecularIntensity	(float specIntensity);
 		void SetSpecularPower		(float specPower);
+		//void SetShader				(const Teqnique& tecnique);
+
+		void UpdateConstantBuffer();
 
 		void AddTextureMap(Map map, const std::shared_ptr<Texture> texture);
 		
 		const bool HasMap(Map map) const;
+		void SetPixelShader(std::filesystem::path filename);
 
 		void Bind() const;
 
 		const std::string GetShaderEntryPoint() const;
+
+		bool UIControls();
 		
 	private:
-		
 		Data							m_data;
 		std::bitset<3>					m_hasMap;
 		Texture::Container				m_textures;
-		PixelShader::handle				m_pixelShader;
+		bool							m_updateConstantBuffer;
 		std::shared_ptr<ConstantBuffer>	m_constantBuffer;
+		PixelShader::handle				m_debugShader = nullptr;
 	};
 }
 

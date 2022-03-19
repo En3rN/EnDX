@@ -1,7 +1,6 @@
 #pragma once
 #include "iHandle.h"
 #include "GfxResources.h"
-#include "Entity.h"
 #include "logger.h"
 #include "enString.h"
 #include <mutex>
@@ -19,6 +18,7 @@ namespace En3rN::DX
 	class DynamicBindable;
 	class Camera;
 	class BindableManager;	
+	class Job;
 	class Bindable : public GfxResources
 	{
 	public:
@@ -33,7 +33,7 @@ namespace En3rN::DX
 		Bindable(Bindable && other) noexcept = default;
 		virtual bool IsBound() { return false; }
 		virtual void Bind() = 0;
-		virtual void Update(const Entity& e) { return;}
+		virtual void Update(const Job& job) { return;}
 		virtual ~Bindable() = default;
 	protected:
 	};

@@ -2,6 +2,7 @@
 #include "iBindable.h"
 #include "enexception.h"
 #include "enString.h"
+#include "Config.h"
 #include <d3dcompiler.h>
 #include <filesystem>
 
@@ -10,7 +11,6 @@ namespace En3rN::DX
 	class Shader : public Bindable
 	{
 	public:
-		static std::wstring shaderFolder;
 		ID3DBlob* GetBlob() { return shaderBlob.Get(); }
 		LPVOID	GetBufferPointer() { return shaderBlob->GetBufferPointer(); }
 		SIZE_T	GetBufferSize() { return shaderBlob->GetBufferSize(); }
@@ -19,10 +19,10 @@ namespace En3rN::DX
 		ComPtr<ID3DBlob> shaderBlob;
 		ComPtr<ID3D11ShaderReflection> reflection;
 		
-		Shader(std::string filename) : m_passName(filename)
-		{
-			std::wstring file = shaderFolder + L"\\Shaders\\" + stringconverter::wstr(filename);
-			errchk::hres(D3DReadFileToBlob(stringconverter::wstr(filename).c_str(), &shaderBlob), EnExParam);			
+		Shader(std::filesystem::path filename) : m_passName(filename.string())
+		{			
+			std::filesystem::path file = Config::GetFolders().shaderFolder / filename;
+			errchk::hres(D3DReadFileToBlob(filename.wstring().c_str(), &shaderBlob));
 		}
 		Shader() = default;
 		Shader(const Shader& other) = default;
@@ -42,36 +42,48 @@ namespace En3rN::DX
 			STDMETHOD(Close)(THIS_ LPCVOID pData);
 		};
 		using handle = std::shared_ptr<PixelShader>;
-		PixelShader(std::string filename) : Shader::Shader(filename)
+		PixelShader(std::filesystem::path filename) : Shader::Shader(filename)
 		{
 			errchk::hres(pDevice->CreatePixelShader(
 				shaderBlob->GetBufferPointer(),
 				shaderBlob->GetBufferSize(),
-				nullptr, &pPixelShader),
-				EnExParam);
+				nullptr, &pPixelShader)
+				);
 		}
 		//PASS::GetPassName , Material::GetEntryPoint()
 		PixelShader(std::string passName, std::string entryPoint)
 		{
-			std::string filename("PS" + passName + ".hlsl");
+			using namespace std::string_literals;
+			std::filesystem::path hlslfile("PS"s + passName + ".hlsl"s);
+			std::filesystem::path csofile (Config::GetFolders().shaderFolder / ("PS" + passName + entryPoint + ".cso"s));
+
+			/*auto hlslLastWrite = std::filesystem::last_write_time(hlslfile);
+			auto csoLastWrite = std::filesystem::last_write_time(hlslfile);
+			try {
+				 csoLastWrite = std::filesystem::last_write_time(csofile);
+			}
+			catch(std::exception e) {
+				
+			}*/
+			
+			
 			ComPtr<ID3DBlob> errBlob;
-			errchk::hres(D3DCompileFromFile(
-				stringconverter::wstr(filename).c_str(), 
+			HRESULT hres = D3DCompileFromFile(
+				hlslfile.wstring().c_str(),
 				nullptr,	//macro 
-				nullptr,	//include interface
+				D3D_COMPILE_STANDARD_FILE_INCLUDE,	//include interface
 				entryPoint.c_str(),
-				"ps_5_0", 
-				D3DCOMPILE_ENABLE_STRICTNESS,
+				"ps_5_0",
+				D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
 				NULL,
 				&shaderBlob,
-				&errBlob),
-				EnExParam);
-
+				&errBlob);
+			if(hres != S_OK)
+				throw EnExcept((char*)errBlob->GetBufferPointer());
 			errchk::hres(pDevice->CreatePixelShader(
 				shaderBlob->GetBufferPointer(),
 				shaderBlob->GetBufferSize(),
-				nullptr, &pPixelShader),
-				EnExParam);
+				nullptr, &pPixelShader));
 
 		}
 		PixelShader() = default;
@@ -79,12 +91,11 @@ namespace En3rN::DX
 		PixelShader(PixelShader && other) noexcept = default;
 		PixelShader& operator = (const PixelShader & other) = default;
 		PixelShader& operator = (PixelShader && other) noexcept = default;
-		~PixelShader() = default;
-		static std::string GetKey(std::wstring filename)
+		~PixelShader() = default;		
+		void Bind() override 
 		{
-			return typeid(PixelShader).name() + stringconverter::str(filename);			
+			pContext->PSSetShader(pPixelShader.Get(), 0, 0);
 		}
-		void Bind() override {pContext->PSSetShader(pPixelShader.Get(), 0, 0);}
 		void Reflect() override;
 	private:
 		ComPtr<ID3D11PixelShader> pPixelShader;
@@ -100,8 +111,7 @@ namespace En3rN::DX
 				shaderBlob->GetBufferPointer(),
 				shaderBlob->GetBufferSize(),
 				nullptr, 
-				&pVertexShader),
-				EnExParam);
+				&pVertexShader));
 		}
 		//PASS::GetPassName , Material::GetEntryPoint()
 		VertexShader(std::string passName, std::string entryPoint)
@@ -111,32 +121,25 @@ namespace En3rN::DX
 			errchk::hres(D3DCompileFromFile(
 				stringconverter::wstr(filename).c_str(),
 				nullptr,	//macro 
-				nullptr,	//include interface
+				D3D_COMPILE_STANDARD_FILE_INCLUDE,	//include interface
 				entryPoint.c_str(),
 				"vs_5_0",
-				D3DCOMPILE_ENABLE_STRICTNESS,
+				D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_DEBUG,
 				NULL,
 				&shaderBlob,
-				&errBlob),
-				EnExParam);
+				&errBlob));
 
 			errchk::hres(pDevice->CreateVertexShader(
 				shaderBlob->GetBufferPointer(),
 				shaderBlob->GetBufferSize(),
-				nullptr, &pVertexShader),
-				EnExParam);
+				nullptr, &pVertexShader));
 		}
 		VertexShader() = default;
 		VertexShader(const VertexShader & other) = default;
 		VertexShader(VertexShader && other) noexcept = default;
 		VertexShader& operator = (const VertexShader & other) = default;
 		VertexShader& operator = (VertexShader && other) noexcept = default;
-		~VertexShader() = default;
-
-		static std::string GetKey(std::string filename)
-		{
-			return { typeid(VertexShader).name() + filename };			
-		}
+		~VertexShader() = default;		
 		void Bind() override { pContext->VSSetShader(pVertexShader.Get(), 0, 0); }
 		void Reflect() override;
 		std::vector<std::string> GetSignatures();

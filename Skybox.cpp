@@ -15,9 +15,6 @@ namespace En3rN::DX
 	Skybox::Skybox(std::string file)
 	{ 
         auto& cam = Camera::GetActiveCamera();
-        pos = { 0,0,0 }; // cam.pos;
-        scale = { 1,1,1};
-        dir={};
         float x = 1.0f / 4.0f;
         float y = 1.0f / 3.0f;
         float p = 1.0f;
@@ -80,6 +77,5 @@ namespace En3rN::DX
     void Skybox::Update(float dt)
     {
         auto& cam = Camera::GetActiveCamera();
-        pos = cam.GetPosition();
     }
 }

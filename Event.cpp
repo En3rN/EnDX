@@ -7,44 +7,44 @@ namespace En3rN
 		return std::make_shared<Event>(category, type, wparam, lparam);
 	}
 
-	void En3rN::EventListener::Register()
+	void En3rN::Event::Listener::Register()
 	{
 		auto& eh = DX::Window::GetEventHandler();
 		eh.Register(this);
 	}
 
-	void En3rN::EventListener::Unregister()
+	void En3rN::Event::Listener::Unregister()
 	{
 		auto& eh = DX::Window::GetEventHandler();
 		eh.Unregister(this);
 	}
 
-	void EventHandler::AddEvent(Event::handle event)
+	void Event::Handler::AddEvent(Event event)
 	{
-		eventQue.push_back(event);
+		eventQue.push(event);
 	}
-	void EventHandler::Register(EventListener* listener)
+	void Event::Handler::Register(Event::Listener* listener)
 	{
 		listeners.push_back(listener);
 	}
-	void EventHandler::Unregister(EventListener* listener)
+	void Event::Handler::Unregister(Event::Listener* listener)
 	{
 		for(auto it=listeners.begin();it<listeners.end();++it)
 			if (*it == listener) {
 				listeners.erase(it);
+				break;
 			}
-		
+		//std::erase_if(listeners, [&]() {it == listeners; })
 	}
 
-	void EventHandler::ProcessEvents()
+	void Event::Handler::ProcessEvents()
 	{
 		while (!eventQue.empty())
 		{
-			for (auto listener : listeners)
-			{
-				if (listener->OnEvent(*eventQue.front())) break;
-			}
-			eventQue.pop_front();
+			for (auto& listener : listeners)
+				if (listener->OnEvent(eventQue.front())) 
+					break;
+			eventQue.pop();
 		}
 	}
 

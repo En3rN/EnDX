@@ -3,50 +3,59 @@
 
 #include "Component.h"
 #include "Buffer.h"
+#include "Scene.h"
 
 namespace En3rN::DX
 {
-	class LightCB;
-	class Light : public Component
+
+	class Light 
 	{
 	public:
+		static constexpr int numLights = 3;
+		using Container = std::vector<Light>;
 		struct Data
 		{
-			alignas(16)Vec3f color;
+			Vec4f Ambient{};
+			struct Common 
+			{
+				Vec4f Color = {0,0,0,0};
+				Vec4f Attenuation = {1,0.5,0.25,0.125};
+				Vec3f Position{};
+				BOOL  IsDirectional{};
+				Vec3f Direction{};
+				float Cone{};
+			} Light[numLights];
 		};
-		std::shared_ptr<LightCB> GetLightCB() { return m_cBuff; }
+		using ConstantBuffer = PSConstantBuffer<Data>;
+		
+		Light(entt::registry& registry);
+
+		std::shared_ptr<ConstantBuffer> GetLightCB() { return m_cBuff; }
+
+		const	Data& GetData() const	{ return m_data; }
+				Data& GetData()			{ return m_data; }
+
+		void SetData(const Data& data) { m_data = data; }
+		void UIControls();
+
 		//components funcs
-		virtual void OnAttach() override;
-		virtual void Bind() override;
-		virtual void OnUpdate() override;
-		virtual void OnDetach() override;
+		void OnAttach();
+		void OnUpdate();
+		void OnDetach();
+
+		virtual ~Light() = default;
 
 	protected:
-		std::shared_ptr<LightCB> m_cBuff;
+		Data							m_data;
+		std::vector<Data::Common>		m_common;
+		entt::registry&					m_registry;
+		std::shared_ptr<ConstantBuffer> m_cBuff;
 	};
-	class DirecionalLight : public Light
-	{
-	public:
-		struct Data
-		{
-			alignas(16)Vec3f color;
-			alignas(16)Vec3f direction;
-		};
-	private:
-	};
-	class PointLight : public Light
-	{
-	public:
-		struct Data
-		{
-			alignas(16)Vec3f color;
-			alignas(16)Vec3f position;
-		};
-	};
-	class LightCB : public TConstantBuffer<LightCB>
-	{
 
-	private:
-	};
+	//components
+	
+	
+
+	
 }
 

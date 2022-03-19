@@ -18,6 +18,7 @@ namespace En3rN::DX
 		Renderer& operator=(const Renderer& other) = default;
 		Renderer& operator=(Renderer&& other)noexcept = default;
 		~Renderer() = default;
+
 		Pass& GetPass(Pass::Name name);
 		void Init(ID3D11DeviceContext* context) { m_context = context; }
 		void AddPass(Pass& pass);

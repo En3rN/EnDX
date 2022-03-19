@@ -8,7 +8,7 @@ namespace En3rN::DX
 {
 	enum class KeyMapping{Forward, Backward, Left, Right, Up, Down, TurnLeft, TurnRight, LookUp, LookDown, SetRawMode};
 
-	class Controllable : public EventListener
+	class Controllable : public Event::Listener
 	{
 	protected:
 		Controllable();

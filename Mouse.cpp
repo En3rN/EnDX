@@ -22,26 +22,23 @@ namespace En3rN::DX
 
 	bool Mouse::OnEvent(Event& e)
 	{
-		if (e.category == Event::Category::Mouse && e.type==Event::Type::RawCapture)
-		{
-			/*auto listener = (RawListener*)(e.lparam);
-			rawCapture ? rawListener = nullptr : rawListener = dynamic_cast<RawListener*>(listener);*/
+		if (e.type==Event::Type::RawCapture)
+		{			
 			ToggleRawCaptureMode();
-			return true;
 		}
 		return false;
 	}
 
 	void Mouse::OnMove(int16_t& x, int16_t& y)
 	{		
-		Logger::Debug("MousePosition [%d , %d]",x,y);
+		//Logger::Debug("MousePosition [%d , %d]",x,y);
 		pos.x = x; pos.y = y;
 	}
 
 	void Mouse::OnPress(uint8_t button)
 	{
 		Logger::Debug("MousePress [%d]", button);
-		buttonState[button] = true;
+		//buttonState[button] = true;
 	}
 
 	void Mouse::OnRelease(uint8_t button)
@@ -50,10 +47,15 @@ namespace En3rN::DX
 		buttonState[button] = false;
 	}
 	void Mouse::OnRawDelta(const long& dx, const long& dy)
-	{		
-		//if (rawListener) rawListener->OnRawMouse(dx, dy);
+	{	
 		rawDeltaBuffer.emplace(Vec2i(dx,dy));
 		TrimBuffer();
+	}
+	void Mouse::Flush()
+	{
+		while(!rawDeltaBuffer.empty())
+			rawDeltaBuffer.pop();
+		buttonState.reset();
 	}
 	std::optional<Vec2i> Mouse::GetRawDelta()
 	{

@@ -14,7 +14,7 @@ namespace En3rN::DX
 		using Container = std::vector<Pass>;
 		enum class Name
 		{
-			Lambertian, Skybox
+			Setup, Phong, Unlit, WriteMask, ReadMask ,Fullscreen, Skybox
 		};
 		Pass(Name name) : m_name(name) {};
 		/*Pass(Pass&& other) noexcept = default;

@@ -17,8 +17,7 @@ namespace En3rN::DX
 				ied.data(), std::size(ied),
 				shaderBlob->GetBufferPointer(),
 				shaderBlob->GetBufferSize(),
-				&pInputLayout),
-				EnExParam);
+				&pInputLayout));
 		}
 		InputLayout(const std::vector<std::string>& signatures, ID3DBlob* shaderBlob, const std::string& modelName)
 		{
@@ -29,8 +28,7 @@ namespace En3rN::DX
 				ied.data(), std::size(ied),
 				shaderBlob->GetBufferPointer(),
 				shaderBlob->GetBufferSize(),
-				&pInputLayout),
-				EnExParam);
+				&pInputLayout));
 		}
 		InputLayout(InputLayout&& other) noexcept = default;
 		static std::string GetKey(std::vector<D3D11_INPUT_ELEMENT_DESC> ied, ID3DBlob* shaderBlob, const std::string& modelName )

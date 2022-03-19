@@ -1,18 +1,11 @@
 #pragma once
-#include "imgui/imgui.h"
+
+#include "imgui\imgui.h"
 #include "iHandle.h"
 #include <string>
 
 namespace En3rN::DX
 {
-    //-----------------------------------------------------------------------------
-// [SECTION] Example App: Debug Log / ShowExampleAppLog()
-//-----------------------------------------------------------------------------
-
-// Usage:
-//  static ExampleAppLog my_log;
-//  my_log.AddLog("Hello %d world\n", 123);
-//  my_log.Draw("title");
     class Logger:unPtr(Logger)
     {
         
@@ -29,10 +22,6 @@ namespace En3rN::DX
             AutoScroll = true;
             Clear();
         }
-        ImGuiTextBuffer     Buf;
-        ImGuiTextFilter     Filter;
-        ImVector<int>       LineOffsets; // Index to lines offset. We maintain this with AddLog() calls.
-        bool                AutoScroll;  // Keep scrolling if already at the bottom.
 
         static void Err(const char* fmt, ...){
             va_list args;
@@ -85,19 +74,20 @@ namespace En3rN::DX
             if (ImGui::Button("Options"))
                 ImGui::OpenPopup("Options");
             ImGui::SameLine();
-            bool clear = ImGui::Button("Clear");
+            if(ImGui::Button("Clear"))
+                logger->Clear();
             ImGui::SameLine();
-            bool copy = ImGui::Button("Copy");
+            if(ImGui::Button("Copy"))
+               ImGui::LogToClipboard();
+
             ImGui::SameLine();
             logger->Filter.Draw("Filter", -100.0f);
 
             ImGui::Separator();
             ImGui::BeginChild("scrolling", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
-
-            if (clear)
-                logger->Clear();
-            if (copy)
-                ImGui::LogToClipboard();
+                
+            
+               
 
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
             const char* buf = logger->Buf.begin();
@@ -166,15 +156,12 @@ namespace En3rN::DX
         }
         
     private:
-        
-
         void    Clear()
         {
             Buf.clear();
             LineOffsets.clear();
             LineOffsets.push_back(0);
         }
-
         void    AddLog(const char* fmt, va_list args) 
         {
             if (level > msgLevel) { return; }
@@ -192,19 +179,19 @@ namespace En3rN::DX
         {
             switch (lvl)
             {
-            case En3rN::DX::Logger::Level::Debug:
+            case Logger::Level::Debug:
                 return std::string("[Debug] ");
                 break;
-            case En3rN::DX::Logger::Level::Info:
+            case Logger::Level::Info:
                 return std::string("[Info] ");
                 break;
-            case En3rN::DX::Logger::Level::Warning:
+            case Logger::Level::Warning:
                 return std::string("[Warning] ");
                 break;
-            case En3rN::DX::Logger::Level::Error:
+            case Logger::Level::Error:
                 return std::string("[Error] ");
                 break;
-            case En3rN::DX::Logger::Level::Off:
+            case Logger::Level::Off:
                 return std::string("[Off] ");
                 break;
             default:
@@ -212,6 +199,10 @@ namespace En3rN::DX
                 break;
             }
         }
+        ImGuiTextBuffer     Buf;
+        ImGuiTextFilter     Filter;
+        ImVector<int>       LineOffsets; // Index to lines offset. We maintain this with AddLog() calls.
+        bool                AutoScroll;  // Keep scrolling if already at the bottom.
         std::string format;
         Logger::Level prevLevel;
         Logger::Level level;
@@ -222,33 +213,7 @@ namespace En3rN::DX
    
 
     
-    // Demonstrate creating a simple log window with basic filtering.
-    /*static void ShowExampleAppLog(bool* p_open)
-    {*/
-        //// For the demo: add a debug button _BEFORE_ the normal log window contents
-        //// We take advantage of a rarely used feature: multiple calls to Begin()/End() are appending to the _same_ window.
-        //// Most of the contents of the window will be added by the log.Draw() call.
-        //ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
-        //ImGui::Begin("Example: Log", p_open);
-        //if (ImGui::SmallButton("[Debug] Add 5 entries"))
-        //{
-        //    static int counter = 0;
-        //    const char* categories[3] = { "info", "warn", "error" };
-        //    const char* words[] = { "Bumfuzzled", "Cattywampus", "Snickersnee", "Abibliophobia", "Absquatulate", "Nincompoop", "Pauciloquent" };
-        //    for (int n = 0; n < 5; n++)
-        //    {
-        //        const char* category = categories[counter % IM_ARRAYSIZE(categories)];
-        //        const char* word = words[counter % IM_ARRAYSIZE(words)];
-        //        logger.AddLog("[%05d] [%s] Hello, current time is %.1f, here's a word: '%s'\n",
-        //            ImGui::GetFrameCount(), category, ImGui::GetTime(), word);
-        //        counter++;
-        //    }
-        //}
-        //ImGui::End();
-
-        //// Actually call in the regular Log helper (which will Begin() into the same window as we just did)
-        //logger.Draw("Example: Log", p_open);
-    /*}*/
+    
 
     
 }

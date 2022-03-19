@@ -1,8 +1,8 @@
 #include "Shader.h"
+//#define D3D_COMPILE_STANDARD_FILE_INCLUDE ((ID3DInclude*)(UINT_PTR)1)
 namespace fs = std::filesystem;
 namespace En3rN::DX
 {
-	std::wstring Shader::shaderFolder = fs::current_path();
 	void PixelShader::Reflect()
 	{
 		
@@ -14,6 +14,9 @@ namespace En3rN::DX
 	std::vector<std::string> VertexShader::GetSignatures()
 	{
 		D3DReflect(shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize(), IID_ID3D11ShaderReflection, &reflection);
+		D3D11_SHADER_DESC shaderDesc{};
+		reflection->GetDesc(&shaderDesc);
+
 		D3D11_SIGNATURE_PARAMETER_DESC signature{};
 		std::vector<std::string> signatures{};
 		UINT index{};

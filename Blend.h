@@ -8,14 +8,14 @@ namespace En3rN::DX
 {
     
     
-	class Blend : public Bindable
+	class Blender : public Bindable
     {
     public:
         enum class State { Default, Enabled, Custom };
-        Blend(State state);
+        Blender(State state);
         static std::string GetKey(State state)
         {
-            return typeid(Blend).name() + std::to_string((int)state);
+            return typeid(Blender).name() + std::to_string((int)state);
         }
         void Bind() override;
     private:

@@ -18,9 +18,6 @@ namespace En3rN::DX
 {
     Plane::Plane()
     {
-        pos = { 0.0f,0.0f,0.0f };
-        scale= { 1.0f,1.0f,1.0f };
-        dir = {};
         std::vector<VertexPosTextCoord> vertecies{
             {-0.5f,+0.5f,0.0f,  -0.01f,-0.01f},
             {+0.5f,+0.5f,0.0f,   1.01f,-0.01f},
@@ -63,11 +60,10 @@ namespace En3rN::DX
         AddBindable(std::move(vs));
         AddBindable(std::move(ps));
 
-        behavior = Behaviors::Get(id);
+        //behavior = Behaviors::Get(id);
     }
     Plane::Plane(Vec3f pos) : Plane()
     {
-        SetPosition(pos);
     }
     void Plane::LoadTexture(std::wstring& file)
     {

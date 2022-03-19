@@ -5,18 +5,17 @@ namespace En3rN::DX
 {
 	Sampler::Sampler(State state) : state(state)
 	{
-		CD3D11_SAMPLER_DESC sampDesc(D3D11_DEFAULT);
-
-		sampDesc.Filter = D3D11_FILTER::D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+		D3D11_SAMPLER_DESC sampDesc{};
+		sampDesc.Filter = D3D11_FILTER::D3D11_FILTER_ANISOTROPIC;
 		sampDesc.AddressU = (D3D11_TEXTURE_ADDRESS_MODE)state;
 		sampDesc.AddressV = (D3D11_TEXTURE_ADDRESS_MODE)state;
 		sampDesc.AddressW = (D3D11_TEXTURE_ADDRESS_MODE)state;
 		sampDesc.MipLODBias = 0;
-		sampDesc.MinLOD = 0;
+		sampDesc.MinLOD = -D3D11_FLOAT32_MAX;
 		sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-		sampDesc.ComparisonFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_ALWAYS;
+		sampDesc.ComparisonFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_NEVER;
 		sampDesc.MaxAnisotropy = 16;
-		errchk::hres(pDevice->CreateSamplerState(&sampDesc, &pSampler), EnExParam);
+		errchk::hres(pDevice->CreateSamplerState(&sampDesc, &pSampler));
 	}
 	void Sampler::Bind()
 	{

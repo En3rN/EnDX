@@ -17,7 +17,7 @@ namespace En3rN::DX
 	void En3rN::DX::Renderer::AddPass(Pass& pass)
 	{
 		m_passes.push_back(pass);
-		std::sort(m_passes.begin(), m_passes.end(), std::less());
+		std::sort(begin(m_passes), end(m_passes), std::less());
 	}
 
 	bool Renderer::Bound(const Bindable::Base::handle& bindable)
@@ -37,17 +37,16 @@ namespace En3rN::DX
 			for (auto& job : pass.GetJobs()){
 				auto& mesh = job.GetMesh();
 				auto& material = job.GetMaterial();
-				mesh.Bind();
-				material.Bind();
-				job.GetTransform();
 				for (auto& step : job.GetStep().GetBindables()){
-					step.get()->Update(mesh);
+					step.get()->Update(job);
 					step.get()->Bind();
 				}
+				mesh.Bind();
+				material.Bind();
 				m_context->DrawIndexed(mesh.GetIndexBuffer()->GetCount(), 0, 0);
 			};
 			pass.GetJobs().clear();
 		};
-		std::for_each(m_passes.begin(), m_passes.end(), execute);
+		std::for_each(begin(m_passes),end(m_passes), execute);
 	}
 }

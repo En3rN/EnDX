@@ -18,7 +18,7 @@ namespace En3rN::DX
 		ID3D11Device* pDevice;
 		ID3D11DeviceContext* pContext;
 #ifdef _DEBUG
-		ID3D11InfoQueue* pInfoQ;
+		ID3D11InfoQueue* pInfoQ = nullptr;
 #endif // _DEBUG || DEBUG
 	};
 }

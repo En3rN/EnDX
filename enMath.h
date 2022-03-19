@@ -4,6 +4,7 @@
 namespace En3rN
 {
 	constexpr auto PI_D = 3.14159265358979323846;
+	constexpr float twoPi = (float)PI_D * 2;
 	constexpr float PI = (float)PI_D;
 	constexpr float halfPI = (float)PI_D / 2;
 	
@@ -25,18 +26,14 @@ namespace En3rN
 	template <typename T>
 	T Wrap(T value,T min, T max)
 	{
-		const T mod = (T)fmod(value, max);
-
 		if (value > max)
 		{
-			return min + (mod - 1) * 1;
+			return min + value-max;
 		}
 		else if (value < min)
 		{
-			return max - (mod - 1) * 1;
+			return max + value;
 		}
 		return value;
-
-
 	}
 }

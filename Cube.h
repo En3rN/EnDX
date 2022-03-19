@@ -28,7 +28,6 @@ namespace En3rN::DX
 	public:
 		Cube() 
 		{
-			name = "Cube";
 			float x = 1.0f / 4.0f;
 			float y = 1.0f / 3.0f;
 			float p = 0.5f;
@@ -77,6 +76,9 @@ namespace En3rN::DX
 			   16,17,18,18,19,16,
 			   20,21,22,22,23,20
 			};
+
+
+			
 			
 			auto vs = BindableManager::Query<VertexShader>("VertexShader.cso");		//("VertexShader.cso");
 			auto signatures = vs->GetSignatures();
@@ -88,22 +90,21 @@ namespace En3rN::DX
 			indexCount = (UINT)std::size(indecies);
 			AddBindable(BindableManager::Query<PixelShader>("Test.cso"));	//("PSSkybox.cso"));
 			AddBindable(BindableManager::Query<InputLayout>			(signatures, vs->GetBlob(),"cube"));
-			AddBindable(BindableManager::Query<VertexBuffer>			(buf,"cube"));
-			AddBindable(BindableManager::Query<IndexBuffer>			(indecies,"cube"));
+			AddBindable(BindableManager::Query<VertexBuffer>		(buf,"cube"));
+			AddBindable(BindableManager::Query<IndexBuffer>			(buf.indecies(4), "cube"));
 			AddBindable(BindableManager::Query<Texture>				("cube.png",0, Texture::Type::CubeMap));
 			AddBindable(BindableManager::Query<Sampler>				(Sampler::State::Wrap));
 			AddBindable(BindableManager::Query<Rasterizer>			(Rasterizer::State::Back));
 			AddBindable(BindableManager::Query<Stencil>				(Stencil::State::DepthOnly));
 			AddBindable(BindableManager::Query<Transform::ConstantBuffer>	(1,1));
 			AddBindable(std::move(vs));
-			behavior = Behaviors::Get(id);
+			//behavior = Behaviors::Get(id);
 		}
 		Cube(Vec3f worldpos) : Cube(){
-			SetPosition(worldpos);
 		}
 		Cube(Vec3f worldpos, Vec3f dirvec) :Cube(){
-			SetPosition(worldpos);
-			SetDirection(dirvec);
+			
+			
 		}
 		Cube(Cube&& other) = default;
 		void Update(float dt) override 

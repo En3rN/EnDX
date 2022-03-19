@@ -14,8 +14,8 @@ namespace En3rN::DX
 	{
 		switch (m_name)
 		{
-		case En3rN::DX::Pass::Name::Lambertian:
-			return std::string("Lambertian");
+		case En3rN::DX::Pass::Name::Phong:
+			return std::string("Phong");
 		case En3rN::DX::Pass::Name::Skybox:
 			return std::string("Skybox");
 		default:

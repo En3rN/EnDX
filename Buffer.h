@@ -2,7 +2,6 @@
 #include "iBindable.h"
 #include "BindableManager.h"
 #include "enexception.h"
-#include "Entity.h"
 #include "end3d11.h"
 #include "enBuffer.h"
 #include <stdint.h>
@@ -11,6 +10,7 @@
 
 namespace En3rN::DX
 {
+	class Job;
 	class Buffer
 	{
 	public:
@@ -45,11 +45,7 @@ namespace En3rN::DX
 			pdesc.MiscFlags = 0;
 			pdesc.StructureByteStride = stride;
 			D3D11_SUBRESOURCE_DATA subRes{ data.data(),0,0 };
-			errchk::hres(pDevice->CreateBuffer(&pdesc, &subRes, &pBuffer),EnExParam);
-		}
-		static std::string GetKey(std::string modelname) 
-		{
-			return typeid(VertexBuffer<T>).name() + modelname;
+			errchk::hres(pDevice->CreateBuffer(&pdesc, &subRes, &pBuffer));
 		}
 		void Bind() override
 		{
@@ -72,7 +68,7 @@ namespace En3rN::DX
 			pdesc.MiscFlags = 0;
 			pdesc.StructureByteStride = stride;
 			D3D11_SUBRESOURCE_DATA subRes{ enbuf.data(),0,0 };
-			errchk::hres(pDevice->CreateBuffer(&pdesc, &subRes, &pBuffer), EnExParam);
+			errchk::hres(pDevice->CreateBuffer(&pdesc, &subRes, &pBuffer));
 		}
 		VertexBuffer(const VertexBuffer& other) = default;
 		VertexBuffer(VertexBuffer&& other) = default;
@@ -99,7 +95,7 @@ namespace En3rN::DX
 			pdesc.MiscFlags = 0;
 			pdesc.StructureByteStride = stride;
 			D3D11_SUBRESOURCE_DATA subRes{ data.data(),0,0 };
-			errchk::hres(pDevice->CreateBuffer(&pdesc, &subRes, &pBuffer), EnExParam);
+			errchk::hres(pDevice->CreateBuffer(&pdesc, &subRes, &pBuffer));
 		}
 		IndexBuffer(const IndexBuffer& other) = default;
 		IndexBuffer(IndexBuffer&& other) = default;
@@ -128,13 +124,13 @@ namespace En3rN::DX
 			pdesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 			pdesc.MiscFlags = 0;
 			pdesc.StructureByteStride = stride;
-			errchk::hres(pDevice->CreateBuffer(&pdesc, nullptr, &pBuffer), EnExParam);
+			errchk::hres(pDevice->CreateBuffer(&pdesc, nullptr, &pBuffer));
 		};
 	protected:
 		void Update(const Data& data)
 		{
 			D3D11_MAPPED_SUBRESOURCE msr{&data,0,0};
-			errchk::hres(pContext->Map(pBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0u, &msr), EnExParam);
+			errchk::hres(pContext->Map(pBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
 			//memcpy(msr.pData, &data, sizeof(data));
 			pContext->Unmap(pBuffer.Get(), 0);
 		}
@@ -154,7 +150,7 @@ namespace En3rN::DX
 			pdesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 			pdesc.MiscFlags = 0;
 			pdesc.StructureByteStride = stride;
-			errchk::hres(pDevice->CreateBuffer(&pdesc, NULL, &pBuffer), EnExParam);
+			errchk::hres(pDevice->CreateBuffer(&pdesc, NULL, &pBuffer));
 		};	
 		~VSConstantBuffer() = default;
 		void Bind() override
@@ -164,14 +160,11 @@ namespace En3rN::DX
 		void Update(const T& data)
 		{
 			D3D11_MAPPED_SUBRESOURCE msr{};
-			errchk::hres(pContext->Map(pBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0u, &msr), EnExParam);
+			errchk::hres(pContext->Map(pBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
 			memcpy(msr.pData, &data, sizeof(data)*count);
 			pContext->Unmap(pBuffer.Get(), 0);
 		}
-		void Update(const Entity& e) override
-		{
-			return Update(e.GetViewMatrix());
-		}
+		void Update(const Job& e) override;
 	private:
 	};
 	// template on datastructure
@@ -189,7 +182,7 @@ namespace En3rN::DX
 			pdesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 			pdesc.MiscFlags = 0;
 			pdesc.StructureByteStride = stride;
-			errchk::hres(pDevice->CreateBuffer(&pdesc, NULL, &pBuffer), EnExParam);
+			errchk::hres(pDevice->CreateBuffer(&pdesc, NULL, &pBuffer));
 		};
 		~PSConstantBuffer() = default;
 
@@ -200,13 +193,14 @@ namespace En3rN::DX
 		void Update(const T& data)
 		{
 			D3D11_MAPPED_SUBRESOURCE msr{};
-			errchk::hres(pContext->Map(pBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0u, &msr), EnExParam);
+			errchk::hres(pContext->Map(pBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
 			memcpy(msr.pData, &data, sizeof(data));
 			pContext->Unmap(pBuffer.Get(), 0);
 		}
-		void Update(const Entity& e) override
-		{
-		}
+		void Update(const Job& e) override;
 	private:
 	};
+	
+	
+
 }

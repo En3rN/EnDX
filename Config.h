@@ -9,6 +9,7 @@ namespace En3rN::DX
 		fs::path assets = "assets";
 		fs::path textures = "textures";
 		fs::path modelPath = assets;
+		fs::path shaderFolder = "Shaders";
 	};
 	class Config
 	{

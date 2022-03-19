@@ -12,6 +12,12 @@ namespace En3rN
 		Vec2(T x,T y) : x(x), y(y) {};
 		Vec2(const Vec2& other) = default;
 		Vec2(Vec2&& rs) = default;
+		Vec2(DirectX::XMVECTOR xmvec)
+		{
+			DirectX::XMFLOAT2 tmp;
+			DirectX::XMStoreFloat2(&tmp, xmvec);
+			*this = { tmp.x, tmp.y };
+		}
 		Vec2& operator = (const Vec2& other) = default;
 		Vec2& operator = (Vec2&& other) = default;
 		Vec2 operator + (const Vec2& other) const
@@ -45,10 +51,22 @@ namespace En3rN
 		T GetLength(Vec2& start,Vec2& end)
 		{			
 		}
-		Vec2 Norm()
+		Vec2 Normalized()
 		{
-			return *this;
+			DirectX::XMFLOAT2 tmp = { x,y };
+			return DirectX::XMVector2Normalize(DirectX::XMLoadFloat2(&tmp));
 		}
+		T Dot(Vec2 other) 
+		{
+			Vec2 tmp = DirectX::XMVector2Dot(*this, other);
+			return tmp.x;
+		}
+		operator DirectX::XMFLOAT2() { return reinterpret_cast<DirectX::XMFLOAT2>(*this); }
+		operator DirectX::XMFLOAT2* () { return reinterpret_cast<DirectX::XMFLOAT2*>(this); }
+		operator DirectX::XMVECTOR () { return DirectX::XMLoadFloat2(*this); }
+		operator const DirectX::XMFLOAT2 () const { return DirectX::XMFLOAT2{ x,y }; }
+		operator const DirectX::XMVECTOR () const { return DirectX::XMLoadFloat2(*this); }
+
 		~Vec2() = default;
 		T x, y;
 	};
@@ -59,10 +77,8 @@ namespace En3rN
 	{
 		Vec3() = default;
 		Vec3(T x, T y, T z) :x(x), y(y), z(z) {};
-		//Vec3(T xAngle, T yAngle, T zAngle = 1, T lenght = 1) : x(cos(xAngle)), y(sin(yAngle)) {};
-		Vec3(Vec3& other) = default;
+		Vec3(const Vec3& other) = default;
 		Vec3(Vec3&& other) = default;
-		//Vec3(std::initializer_list<T> list) : x(*(list.begin())), y(*(list.begin() + 1)), z(*(list.begin() + 2)) {};
 		Vec3(const DirectX::XMVECTOR& other)
 		{
 			DirectX::XMFLOAT3 f3;
@@ -73,36 +89,34 @@ namespace En3rN
 		Vec3& operator = (Vec3& other) = default;
 		Vec3& operator = (const Vec3& other) = default;
 		Vec3& operator = (Vec3 && other) = default;
-		Vec3 operator + (const Vec3 & other) 
+		Vec3 operator + (const Vec3 & other) const
+		{
+			return Vec3(x+other.x,y+other.y,z+other.z);
+		}
+		Vec3& operator +=(const Vec3& other)
 		{
 			x += other.x; y += other.y; z += other.z;
 			return *this;
 		}
-		Vec3 operator +=(const Vec3 & other)
+		Vec3 operator - (const Vec3& other) const
 		{
-			x += other.x; y += other.y; z += other.z;
-			return *this;
+			return Vec3(x - other.x, y - other.y, z - other.z);
 		}
 		Vec3& operator -=(const Vec3& other)
 		{
 			x -= other.x; y -= other.y; z -= other.z;
 			return *this;
 		}
-		Vec3 operator - (const Vec3 & other)
-		{
-			x -= other.x; y -= other.y; z -= other.z;
-			return *this;
-		}
-		template <typename t>
-		Vec3 operator * (const t multiplier)
+		template <typename Scalar>
+		Vec3 operator * (const Scalar& multiplier) const
 		{
 			return Vec3(x * multiplier, y * multiplier, z * multiplier);
 		}
-		template <typename t>
-		Vec3 operator *= (t multiplier) {
+		template <typename Scalar>
+		Vec3& operator *= (const Scalar& multiplier) {
 			return Vec3(x * multiplier, y * multiplier,z * multiplier);
 		}
-		bool operator == (Vec3<T> & other)
+		bool operator == (const Vec3 & other) const
 		{
 			if (x == other.x && y == other.y && z == other.z)
 				return true;
@@ -123,19 +137,42 @@ namespace En3rN
 		{
 			*this = DirectX::XMVector3Normalize(*this);
 		}
-		T Length()
+		T Length() const
 		{
 			return Vec3(DirectX::XMVector3Length(*this)).x;
 		}
+		T Dot(const Vec3& other)
+		{
+			Vec3 tmp = DirectX::XMVector3Dot(*this, other);
+
+			return tmp.x;
+		}
+		bool operator = (const Vec3& other) const
+		{
+			bool result = true;
+			x != other.x ? result = false : result = result;
+			y != other.y ? result = false : result = result;
+			z != other.z ? result = false : result = result;
+			return result;
+		}
+		bool operator != (const Vec3& other) const
+		{
+			bool result = true;
+			x = other.x ? result = false : result = result;
+			y = other.y ? result = false : result = result;
+			z = other.z ? result = false : result = result;
+			return result;
+		}
 		
 		template <typename castT>
-		Vec3 operator()(Vec3<castT>)
-		{
-			return { static_cast<castT>(x), static_cast<castT>(y), static_cast<castT>(z) };
-		}
-		operator DirectX::XMFLOAT3() {return (DirectX::XMFLOAT3)*this;}
-		operator const DirectX::XMFLOAT3* () const { return (DirectX::XMFLOAT3*)this; }
-		operator const DirectX::XMVECTOR () const {return DirectX::XMLoadFloat3(*this);}
+		operator Vec3<castT>()							{ return { static_cast<castT>(x), static_cast<castT>(y), static_cast<castT>(z) }; }
+		operator DirectX::XMFLOAT3()					{ return reinterpret_cast<DirectX::XMFLOAT3>(*this); }
+		operator DirectX::XMFLOAT3* ()					{ return reinterpret_cast<DirectX::XMFLOAT3*>(this); }
+		operator DirectX::XMVECTOR ()					{ return DirectX::XMLoadFloat3(*this);}
+		operator DirectX::XMFLOAT3* ()			const	{ return (DirectX::XMFLOAT3*)(this); }
+		operator const DirectX::XMFLOAT3()		const	{ return reinterpret_cast<DirectX::XMFLOAT3>(*this); }
+		//operator const DirectX::XMFLOAT3* ()	const	{ return reinterpret_cast<DirectX::XMFLOAT3*>(this); }
+		operator const DirectX::XMVECTOR() 		const	{ return DirectX::XMLoadFloat3(*this); }
 		operator T* () { return {&x}; }
 		T x, y, z;
 	};

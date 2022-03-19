@@ -19,13 +19,13 @@ namespace En3rN::DX
 			case 0:
 				return LoadCube(
 					std::move(pos),
-					Material(std::move(color),Vec4f(),Vec4f(),0)
-				);
+					Material(Material::Data({color,Vec3f(),0,Vec3f(),0})
+				));
 			case 1:
 				return LoadPlane(
 					std::move(pos),
-					Material(std::move(color), Vec4f(), Vec4f(), 0)
-				);
+					Material(Material::Data({ color,Vec3f(),0,Vec3f(),0 })
+				));
 			default:
 				assert(false && "bad drawable type in factory");
 				return {};
@@ -46,8 +46,7 @@ namespace En3rN::DX
 
 		std::uniform_int_distribution<int> latdist{ 5,20 };
 		std::uniform_int_distribution<int> longdist{ 10,40 };
-		std::uniform_int_distribution<int> typedist{ 0,1 };
-		
+		std::uniform_int_distribution<int> typedist{ 0,0 };
     };
 
     

@@ -5,6 +5,7 @@
 #include "BindableManager.h"
 #include "Config.h"
 
+
 namespace En3rN::DX
 {
 	Texture::Texture(std::filesystem::path file, UINT slot, Type type) : m_slot(slot)
@@ -23,19 +24,19 @@ namespace En3rN::DX
 		DirectX::ScratchImage simg{};
 		DirectX::TexMetadata meta{};
 		meta.mipLevels = 0;
+		
 
 		//std::wstring p = path.make_preferred().wstring();
-		if (!std::filesystem::exists(path)) throw EnExcept("File not found!"+ path.string(), EnExParam);
-		//C:\Users\ChristerAndre\Source\Repos\En3rN\EnDX\Assets\Sponza\textures\sponza_thorn_diff.png
+		if (!std::filesystem::exists(path)) throw EnExcept("File not found!"+ path.string(), std::source_location::current());
 
-		errchk::hres(DirectX::LoadFromWICFile(path.wstring().c_str(), wflags, &meta, simg), EnExParam);
+		errchk::hres(DirectX::LoadFromWICFile(path.wstring().c_str(), wflags, &meta, simg));
 
 		if (simg.GetMetadata().format != DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM)
 		{
 			DirectX::ScratchImage converted{};
 			DirectX::Convert(*simg.GetImages(),
 				DXGI_FORMAT_R8G8B8A8_UNORM,
-				TEX_FILTER_DEFAULT,
+				TEX_FILTER_FANT,
 				DirectX::TEX_THRESHOLD_DEFAULT,
 				converted);
 			simg = std::move(converted);
@@ -78,7 +79,7 @@ namespace En3rN::DX
 			srvdesc.Texture2D.MostDetailedMip = 0;
 			srvdesc.Texture2D.MipLevels = -1;
 			ScratchImage mips;
-			GenerateMipMaps(*simg.GetImage(0, 0, 0), TEX_FILTER_FLAGS::TEX_FILTER_DEFAULT, (size_t)0, mips);
+			GenerateMipMaps(*simg.GetImage(0, 0, 0), TEX_FILTER_FLAGS::TEX_FILTER_SEPARATE_ALPHA, (size_t)0, mips);
 			simg = std::move(mips);
 			break;
 		}
@@ -122,9 +123,8 @@ namespace En3rN::DX
 
 		}
 		ComPtr<ID3D11Resource> pTexture;
-		errchk::hres(CreateTexture(pDevice, simg.GetImages(), simg.GetImageCount(), simg.GetMetadata(), &pTexture), EnExParam);
-		errchk::hres(CreateShaderResourceView(pDevice, simg.GetImages(), simg.GetImageCount(), simg.GetMetadata(), &pTextureView), EnExParam);
-		
+		errchk::hres(CreateTexture(pDevice, simg.GetImages(), simg.GetImageCount(), simg.GetMetadata(), &pTexture));
+		errchk::hres(CreateShaderResourceView(pDevice, simg.GetImages(), simg.GetImageCount(), simg.GetMetadata(), &pTextureView));		
 	}	
 	void Texture::Bind()
 	{

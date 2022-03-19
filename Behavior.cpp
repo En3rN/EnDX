@@ -3,7 +3,7 @@
 namespace En3rN::DX
 {
 	Behaviors::handle Behaviors::instance = std::make_unique<Behaviors>();
-	Behaviors::Behaviors()
+	/*Behaviors::Behaviors()
 	{
 		behaviors.emplace_back([](Drawable& e,float dt) {
 			e.angles.x = WrapAngle(e.angles.x + dt);
@@ -25,5 +25,5 @@ namespace En3rN::DX
 	{
 		auto& i = *instance;
 		return i.behaviors[id % i.behaviors.size()];
-	}
+	}*/
 }

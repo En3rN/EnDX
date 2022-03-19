@@ -1,6 +1,7 @@
 #include "InfoManager.h"
 #include "Graphics.h"
 #include "enexception.h"
+#include "Entity.h"
 
 namespace En3rN::DX
 {
@@ -10,7 +11,7 @@ namespace En3rN::DX
 #ifndef _DEBUG | DEBUG
 		return;
 #endif _DEBUG | DEBUG
-		errchk::hres(device.QueryInterface<ID3D11InfoQueue>(&pInfoQ), EnExParam);
+		errchk::hres(device.QueryInterface<ID3D11InfoQueue>(&pInfoQ));
 		infoManager = this;
 	}
 

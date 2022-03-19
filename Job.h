@@ -12,6 +12,7 @@ namespace En3rN::DX
 	class Mesh;
 	class Material;
 	class Step;
+	class Node;
 	class Job
 	{
 	public:
@@ -23,10 +24,10 @@ namespace En3rN::DX
 		Job& operator = (Job && other) noexcept = default;
 		Job& operator = (Job & other) = default;
 		~Job() = default;*/
-		const Mesh& GetMesh()					const { return *m_mesh; }
-		const Material& GetMaterial()			const { return *m_material;}
-		const Transform::Matrix& GetTransform() const { return *m_transform; }
-		const Step& GetStep()					const { return *m_step; }
+		const Mesh&					GetMesh()		const { return *m_mesh; }
+		const Material&				GetMaterial()	const { return *m_material;}
+		const Transform::Matrix&	GetTransform()	const { return *m_transform; }
+		const Step&					GetStep()		const { return *m_step; }
 		
 	private:
 		const Mesh*					m_mesh;

@@ -8,6 +8,7 @@
 #include "Entity.h"
 #include "InputLayout.h"
 #include "Teqnique.h"
+#include <string>
 #include <vector>
 
 class aiMesh;
@@ -15,15 +16,21 @@ class aiMesh;
 namespace En3rN::DX
 {	
 	
-	class Mesh : public Entity
+	class Mesh
 	{
-		friend class Job;
+		//friend class Job;
 	public:
 		using Container = std::vector<Mesh>;
+		using Index = uint32_t;
 		
 		
-		Mesh(const std::shared_ptr<VertexBuffer>& vertexbuffer, const std::shared_ptr<IndexBuffer>& indexbuffer, Material::Index materialIndex);
-		Mesh(const aiMesh* aimesh);
+		Mesh(const VertexBuffer::handle& vertexbuffer, 
+			 const IndexBuffer::handle& indexbuffer,
+			 const Topology::handle& topology,
+			 const VertexShader::handle& vertexshader,
+			 const InputLayout::handle& inputlayout,
+			 Material::Index materialIndex);
+		Mesh(const aiMesh* aimesh, Material::Index offset =0);
 		Mesh() = default;
 		//Mesh(const Mesh& other) = default;
 		Mesh(Mesh&& other) noexcept = default ;
@@ -31,16 +38,18 @@ namespace En3rN::DX
 		Mesh& operator = (Mesh && other) noexcept = default;
 		~Mesh() = default;
 		
-		const std::string&					GetName()		   const{ return m_name; };
-		const VertexBuffer::handle&			GetVertexBuffer()  const{ return m_vertexBuffer; };
-		const IndexBuffer::handle&			GetIndexBuffer()   const{ return m_indexBuffer; };
-		Material::Index						GetMaterialIndex() const{ return m_materialIndex; }
-		const Teqnique::Base::Container&	GetTeqniques()	   const{ return m_teqniques; }
+		const std::string&			GetName()		   const;
+		const VertexBuffer::handle& GetVertexBuffer()  const;
+		const IndexBuffer::handle&	GetIndexBuffer()   const;
+		Material::Index				GetMaterialIndex() const;
+		const Teqnique::Container&	GetTeqniques()	   const;
+		Teqnique::Container&		Teqniques();
 		
-		void SetVertexBuffer		(VertexBuffer::handle&& vertexBuffer);
-		void SetIndexBuffer			(IndexBuffer::handle&& indexBuffer);
-		void SetMaterialIndex		(Material::Index index);
-		void AddTeqnique			(Teqnique::Base::handle teqnique);
+		void SetName(const std::string& name);
+		void SetVertexBuffer(VertexBuffer::handle&& vertexBuffer);
+		void SetIndexBuffer(IndexBuffer::handle&& indexBuffer);
+		void SetMaterialIndex(Material::Index index);
+		void AddTeqnique(Teqnique teqnique, const Material::Container& materials);
 		
 		void Update(float dt);
 		void Bind() const;
@@ -54,7 +63,7 @@ namespace En3rN::DX
 		VertexShader::handle		m_vertexShader;
 		InputLayout::handle			m_inputLayout;
 		Material::Index				m_materialIndex;
-		Teqnique::Base::Container	m_teqniques;
+		Teqnique::Container			m_teqniques;
 	};
 }
 

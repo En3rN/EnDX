@@ -2,12 +2,13 @@
 #include "Graphics.h"
 #include "Plane.h"
 #include "Cube.h"
-#include "imgui.h"
-#include "imgui_impl_win32.h"
-#include "imgui_impl_dx11.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_win32.h"
+#include "imgui/imgui_impl_dx11.h"
 #include "Skybox.h"
 #include "teapot.h"
 #include "RandomFactory.h"
+#include "RenderTarget.h"
 
 namespace En3rN::DX
 {
@@ -15,20 +16,24 @@ namespace En3rN::DX
 
     bool EnDX::Run()
     {
-        if (windows.empty()) throw EnExcept("No window created!", EnExParam);
+        assert(!windows.empty());
         Window& wnd = GetWindow();
+        Event::Handler& eventHandler = wnd.GetEventHandler();
         Graphics& gfx = wnd.GetGfx();
         Keyboard& kbd = wnd.GetKbd();
         Mouse& mouse = wnd.GetMouse();
         wnd.Register();
         mouse.Register();
+        RenderTarget rtv(256, 256);
+        DepthStencil dsv(256, 256);
+        rtv.Set(dsv);
         LoadScene();
         while (ProcessMsg())
         {
             auto deltaTime = timer.GetFrameTimer();
             gfx.BeginFrame(timer.GetElapsed());
             //HandleInput
-            wnd.GetEventHandler().ProcessEvents();
+            eventHandler.ProcessEvents();
             Camera::GetActiveCamera().OnRawCapture(deltaTime, kbd, mouse);
             //HandleLogic
             //UpdateScene
@@ -42,7 +47,7 @@ namespace En3rN::DX
     bool EnDX::ProcessMsg()
     {
         MSG msg{};
-        if (PeekMessage(&msg, nullptr, NULL, NULL, PM_REMOVE) > 0)
+        while (PeekMessage(&msg, nullptr, NULL, NULL, PM_REMOVE) > 0)
         {
             if (msg.message == WM_QUIT) 
                 return false;
@@ -72,7 +77,7 @@ namespace En3rN::DX
     }
     bool EnDX::NewScene()
     {
-        scenes.emplace_back(std::make_unique<Scene>());
+        scenes.emplace_back(std::make_unique<Scene>(&GetWindow().GetGfx().GetRenderer()));
         return true;
     }
     bool EnDX::AddObjectToScene()
@@ -89,10 +94,14 @@ namespace En3rN::DX
         {
             scene.AddDrawable(factory());
         };*/
-        //scene.AddDrawable(std::make_unique<Cube>());
-        scene.AddModel(Model::LoadModel("nanosuit.obj"));
-
-        /*scene.AddDrawable(std::make_unique<Skybox>("0-desert-skybox.png"));*/
+        //scene.AddModel(Model::LoadPrimitive());
+        //scene.AddModel(Model::LoadModel("cube.obj"));
+        //scene.AddModel(Model::LoadModel("/primitive/sphere.obj"));
+        //scene.AddModel(Model::LoadModel("/nanosuit/nanosuit.obj", {.2f,.2f,.2f}));
+        //scene.AddModel(Model::LoadModel("/muro/muro.obj"));
+        //scene.AddModel(Model::LoadModel("/gobber/gobber.obj"));
+        //scene.AddModel(Model::LoadModel("/sponza/sponza.obj", {0.05f,0.05f,0.05f}));
+        //scene.AddDrawable(std::make_unique<Skybox>("0-desert-skybox.png"));
         
         
         return false;

@@ -56,7 +56,7 @@ namespace En3rN::DX
                 else
                 {
                     std::string err{ "Semantic:" + e.semantic() + " Not found in buffer" };
-                    throw EnExcept(err, EnExParam);
+                    throw EnExcept(err, std::source_location::current());
                 }
             }
         }

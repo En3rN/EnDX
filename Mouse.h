@@ -8,7 +8,7 @@
 #include <bitset>
 namespace En3rN::DX
 {
-	class Mouse: shPtr(Mouse), public EventListener
+	class Mouse: shPtr(Mouse), public Event::Listener
 	{
 	public:
 		struct RawListener
@@ -23,19 +23,18 @@ namespace En3rN::DX
 		void OnPress(uint8_t button);
 		void OnRelease(uint8_t button);
 		void OnRawDelta(const long& dx, const long& dy);
+		void Flush();
 		std::optional<Vec2i> GetRawDelta();
 		void ToggleRawCaptureMode();
 		bool RawCapture();
 		void TrimBuffer();
 
 	private:
-		uint8_t maxBufferSize = 2;
-		Vec2<int16_t> pos;
-		std::bitset<10> buttonState;
-		std::queue<Vec2i> rawDeltaBuffer;
+		uint8_t maxBufferSize = 5;
+		Vec2<int16_t> pos{};
+		std::bitset<10> buttonState{};
+		std::queue<Vec2i> rawDeltaBuffer{};
 		bool rawCapture = false;
-		//RawListener* rawListener;
-		
 	};
 }
 

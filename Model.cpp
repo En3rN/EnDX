@@ -1,7 +1,6 @@
 #include "Model.h"
 #include "Primitive.h"
 #include "Teqnique.h"
-#include "TeqLambert.h"
 #include "Renderer.h"
 #include "Shader.h"
 #include "Config.h"
@@ -9,28 +8,56 @@
 #include <assimp\Importer.hpp>
 #include <assimp\scene.h>
 #include <assimp\postprocess.h>
+#include <assimp\version.h>
 
 
 
 namespace En3rN::DX
 {
-	Model::Model(const aiScene* aiscene)
+	Model::Model(std::filesystem::path file, Vec3f scale)
+	{
+		std::filesystem::path path;
+		if(file.has_parent_path())
+			path = file.parent_path();
+		else
+			path = file;
+		std::stringstream version;
+		version << "Assimp version: " << "Major:" << aiGetVersionMajor() << " Minor:" << aiGetVersionMinor() << " Revision:" << aiGetVersionRevision() << std::endl;
+		OutputDebugString(version.str().c_str());
+
+		Assimp::Importer importer;
+		const aiScene* scene = importer.ReadFile(file.string(),
+			aiProcess_Triangulate |
+			aiProcess_JoinIdenticalVertices |
+			aiProcess_SortByPType |
+			aiProcess_ConvertToLeftHanded |
+			aiProcess_CalcTangentSpace |
+			aiProcess_GenNormals |
+			aiProcess_FixInfacingNormals
+		);
+		// If the import failed, report it
+		if(!scene) {
+			std::string err = "Failed to load model: ";
+			err += importer.GetErrorString();
+			throw EnExcept(err);
+		}
+		Logger::Debug(importer.GetErrorString());
+
+		for(auto i = 0u; i < scene->mNumMeshes; ++i)
+			m_meshes.push_back(scene->mMeshes[i]);
+		for(auto i = 0u; i < scene->mNumMaterials; ++i)
+			m_materials.push_back(scene->mMaterials[i]);
+		m_rootNode = std::make_unique<Node>(scene->mRootNode, scale);
+	}
+	Model::Model(const aiScene* aiscene, const std::string& name, Vec3f scale) : m_name(name), m_controlWindow(false)
 	{
 		for (auto i = 0u; i < aiscene->mNumMeshes; ++i)
 			m_meshes.push_back(aiscene->mMeshes[i]);
 		for (auto i = 0u; i < aiscene->mNumMaterials; ++i)
 			m_materials.push_back(aiscene->mMaterials[i]);
-		m_rootNode = std::make_unique<Node>(aiscene->mRootNode);
-		AddTeqnique(std::make_shared<TeqLambertian>());
+		m_rootNode = std::make_unique<Node>(aiscene->mRootNode, scale);
+		AddTeqnique(Teqnique::Phong());
 	}
-	Model::Model(Mesh&& mesh, const Material& material)
-	{
-		m_meshes.push_back(std::move(mesh));
-		m_materials.push_back(material);
-	}
-	Model::Model(Mesh::Container&& meshes, Material::Container&& materials) :
-		m_rootNode(nullptr), m_meshes(std::move(meshes)), m_materials(std::move(materials)) {}
-	
 	void Model::Update(float dt)
 	{
 		for (auto& mesh : m_meshes)
@@ -43,15 +70,15 @@ namespace En3rN::DX
 			auto& mesh = m_meshes[meshIndex];
 			auto& material = m_materials[mesh.GetMaterialIndex()];
 			for (auto& teq : mesh.GetTeqniques()){
-				if(teq->IsActive())
-					for (auto& step : teq->GetSteps()){
+				if(teq.IsActive())
+					for (auto& step : teq.GetSteps()){
 						renderer.GetPass(step.GetRenderPassSlot()).AddJob(
 							Job(mesh, material, node.GetTransform(), step));
 					}
 			}
 		}
-		for (auto& childs : node.GetChilds())
-			CreateJobs(renderer, *childs);
+		for (auto& child : node.GetChilds())
+			CreateJobs(renderer, *child);
 
 	}
 	void Model::AddMesh(Mesh&& mesh)
@@ -62,40 +89,23 @@ namespace En3rN::DX
 	{
 		m_materials.push_back(material);
 	}
-	void Model::AddTeqnique(Teqnique::Base::handle teqnique)
+	void Model::AddTeqnique(Teqnique teqnique)
 	{	
 		for (auto& mesh : m_meshes)
-			mesh.AddTeqnique(teqnique);
+			mesh.AddTeqnique(teqnique, m_materials);
 	}
 	void Model::ApplyTransform(Vec3f position, Vec3f rotationAngles, Vec3f scale)
 	{
 		using namespace DirectX;
-		Transform::Matrix matrix = XMMatrixTranspose(
+		Transform::Matrix matrix = 
 			XMMatrixRotationRollPitchYaw(rotationAngles.y, rotationAngles.x, rotationAngles.z) *
 			XMMatrixScaling(scale.x, scale.y, scale.z) *
-			XMMatrixTranslation(position.x, position.y, position.z));
+			XMMatrixTranslation(position.x, position.y, position.z);
 		m_rootNode->ApplyTransform(matrix);
 
 	}
-	/*const std::vector<std::string> Model::GetSignatures()
-	{
-		std::vector<std::string> signatures;
-		std::for_each(begin(m_teqniques), end(m_teqniques), [&](Teqnique::Base::handle& teq) {
-			auto& steps = teq->GetSteps();
-			std::for_each(begin(steps), end(steps), [&](Step& step) {
-				auto shaderName = step.GetPassName();
-				auto vs = BindableManager::Query<VertexShader>(shaderName);
-				auto s = vs->GetSignatures();
-				std::for_each(begin(s), end(s), [&](std::vector<std::string>::iterator it) {
-					if (std::find(begin(signatures), end(signatures), *it) != end(signatures))
-						signatures.insert(it, *it);
-					});
-				});
-			});
-		return signatures;
-	}*/
 
-	Model::handle Model::LoadModel(std::filesystem::path file)
+	Model::handle Model::LoadModel(std::filesystem::path file, Vec3f scale)
 	{
 		file.make_preferred();
 		auto& modelPath = Config::GetFolders().modelPath;
@@ -105,27 +115,51 @@ namespace En3rN::DX
 		}
 		std::filesystem::path path = modelPath;
 		path /= file.filename();
-		
+
+		std::stringstream version;
+		version << "Assimp version: " << "Major:" << aiGetVersionMajor() << " Minor:" << aiGetVersionMinor() << " Revision:" << aiGetVersionRevision() << std::endl;
+		OutputDebugString(version.str().c_str());
+
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(path.string(),
-			aiProcess_CalcTangentSpace |
 			aiProcess_Triangulate |
 			aiProcess_JoinIdenticalVertices |
 			aiProcess_SortByPType |
-			aiProcess_GenNormals |
 			aiProcess_ConvertToLeftHanded |
-			aiProcess_CalcTangentSpace);
+			aiProcess_CalcTangentSpace |
+			aiProcess_GenNormals |
+			aiProcess_FixInfacingNormals
+		);
 		// If the import failed, report it
-		if (!scene) {
+		if(!scene) {
 			std::string err = "Failed to load model: ";
 			err += importer.GetErrorString();
-			throw EnExcept(err, EnExParam);
+			throw EnExcept(err);
 		}
-		return std::make_unique<Model>(scene);
+		Logger::Debug(importer.GetErrorString());
+		return std::make_unique<Model>(scene, path.filename().string(), scale);
 	}
 	Model::handle Model::LoadPrimitive()
 	{
 		Primitive factory;
 		return factory();
 	}
+
+	bool Model::UIControls(Node* node)
+	{
+		for (auto index : node->GetMeshIndecies()) {
+			m_materials[m_meshes[index].GetMaterialIndex()].UIControls();
+		}
+
+		return false;
+	}
+
+	
+	
+	
+	
+		
+
+
+	
 }
