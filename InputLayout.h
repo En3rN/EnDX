@@ -1,6 +1,7 @@
 #pragma once
-#include "Drawable.h"
+
 #include "enexception.h"
+#include "BindableManager.h"
 #include <vector>
 
 namespace En3rN::DX
@@ -9,33 +10,44 @@ namespace En3rN::DX
 	class InputLayout : public Bindable
 	{
 	public:
-		InputLayout(std::vector<D3D11_INPUT_ELEMENT_DESC> ied, ID3DBlob* blob)
+		using handle = std::shared_ptr<InputLayout>;
+		InputLayout(std::vector<D3D11_INPUT_ELEMENT_DESC> ied, ID3DBlob* shaderBlob, const std::string& modelName)
 		{
 			errchk::hres(pDevice->CreateInputLayout(
 				ied.data(), std::size(ied),
-				blob->GetBufferPointer(),
-				blob->GetBufferSize(),
-				&pInputLayout),
-				EnExParam);
+				shaderBlob->GetBufferPointer(),
+				shaderBlob->GetBufferSize(),
+				&pInputLayout));
+		}
+		InputLayout(const std::vector<std::string>& signatures, ID3DBlob* shaderBlob, const std::string& modelName)
+		{
+			std::vector<D3D11_INPUT_ELEMENT_DESC> ied{};
+			for (auto& signature : signatures)
+				ied.emplace_back(element_desc[signature]);
+			errchk::hres(pDevice->CreateInputLayout(
+				ied.data(), std::size(ied),
+				shaderBlob->GetBufferPointer(),
+				shaderBlob->GetBufferSize(),
+				&pInputLayout));
 		}
 		InputLayout(InputLayout&& other) noexcept = default;
-		virtual std::string GetKey(std::vector<D3D11_INPUT_ELEMENT_DESC>& ied)
+		static std::string GetKey(std::vector<D3D11_INPUT_ELEMENT_DESC> ied, ID3DBlob* shaderBlob, const std::string& modelName )
 		{
 			std::string elementString;
-			for (auto e : ied)
+			for (const auto& e : ied)
 				elementString += e.SemanticName;
-			return typeid(InputLayout).name() + '#' + elementString;
+			return typeid(InputLayout).name()+elementString;
+		}
+		static InputLayout::handle Query(std::vector<D3D11_INPUT_ELEMENT_DESC> ied, ID3DBlob* shaderBlob, const std::string& modelName )
+		{
+			return BindableManager::Query<InputLayout>(ied, shaderBlob, modelName);
 		}
 		void Bind() override
 		{
 			pContext->IASetInputLayout(pInputLayout.Get());
 		}
-		static std::vector<D3D11_INPUT_ELEMENT_DESC> Position;
-		static std::vector<D3D11_INPUT_ELEMENT_DESC> PositionColor;
-		static std::vector<D3D11_INPUT_ELEMENT_DESC> PositionTexCoord;
-		static std::vector<D3D11_INPUT_ELEMENT_DESC> PositionTexCoord3d;
 	private:
-		std::string modelName;
+		static std::map<std::string, D3D11_INPUT_ELEMENT_DESC> element_desc;
 		ComPtr<ID3D11InputLayout> pInputLayout;
 	};
 

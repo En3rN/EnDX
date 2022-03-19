@@ -1,24 +1,23 @@
 #pragma once
 #include "Buffer.h"
-#include "Window.h"
-#include "Camera.h"
+#include "Job.h"
+#include "Material.h"
+#include "Transform.h"
+#include "Node.h"
 
 
 namespace En3rN::DX
 {
-	void Transform::Update()
+	void PSConstantBuffer<Material::Data>::Update(const Job& job)
 	{
-		auto cam = Camera::GetActiveCamera();
-		DirectX::XMMATRIX data =
-			DirectX::XMMatrixTranspose(
-				parent.GetViewMatrix() *
-				cam.GetViewMatrix() *
-				cam.GetProjectionMatrix()
-			);
-		D3D11_MAPPED_SUBRESOURCE msr{};
-		errchk::hres(pContext->Map(pBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr), EnExParam);
-		memcpy(msr.pData, &data, sizeof(data));
-		pContext->Unmap(pBuffer.Get(), 0u);
+		Update(job.GetMaterial().GetData());
+		return;
+	}
+	
+	void VSConstantBuffer<Transform::Matrix>::Update(const Job& job)
+	{
+		return Update(DirectX::XMMatrixTranspose(job.GetTransform()));
 	}
 	
 }
+

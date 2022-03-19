@@ -4,10 +4,10 @@
 
 namespace En3rN::DX
 {
-	class Skybox : public DynamicDrawable
+	class Skybox : public Drawable
 	{
 	public:
-		Skybox(std::wstring file);
+		Skybox(std::string file);
 		void Draw() override;
 		void Update(float dt) override;
 	private:

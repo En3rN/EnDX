@@ -1,32 +1,41 @@
 #pragma once
 #include "iBindable.h"
+#include "BindableManager.h"
 #include "enexception.h"
-#include "Entity.h"
 #include "end3d11.h"
 #include "enBuffer.h"
 #include <stdint.h>
 #include <vector>
+#include <string>
 
 namespace En3rN::DX
 {
+	class Job;
 	class Buffer
 	{
 	public:
+		Buffer(const Buffer& other) = default;
 		Buffer(Buffer&& other) noexcept = default;
+		Buffer& operator = (const Buffer& other) = default;
+		Buffer& operator = (Buffer&& other) noexcept = default;
 		virtual ~Buffer() = default;
+		
+		UINT GetCount() { return count;}
 	protected:
-		Buffer(UINT count, UINT stride, UINT offset = 0) : count(count), stride(stride), offset(offset) {};
-		ComPtr<ID3D11Buffer> pBuffer{};
+		Buffer(UINT count, UINT stride, UINT slot =0,UINT offset=0) : count(count), stride(stride), slot(slot),offset(offset) {};
+
 		UINT count;
 		UINT stride;
+		UINT slot;
 		UINT offset;
+		ComPtr<ID3D11Buffer> pBuffer{};
 	};
 
 	template <typename T>
-	class VertexBuffer : public Buffer, public Bindable
+	class VertexBufferT : public Buffer , public Bindable
 	{
 	public:
-		VertexBuffer(std::vector<T>& data) : Buffer(data.size(),(sizeof(T)))
+		VertexBufferT(std::vector<T>& data) : Buffer(data.size(),sizeof(T))
 		{
 			D3D11_BUFFER_DESC pdesc{};
 			pdesc.ByteWidth = stride * count;
@@ -36,24 +45,20 @@ namespace En3rN::DX
 			pdesc.MiscFlags = 0;
 			pdesc.StructureByteStride = stride;
 			D3D11_SUBRESOURCE_DATA subRes{ data.data(),0,0 };
-			errchk::hres(pDevice->CreateBuffer(&pdesc, &subRes, &pBuffer),EnExParam);
-		}
-		std::string GetKey(std::string modelname) 
-		{
-			return typeid(VertexBuffer<T>).name() + '#' + modelname;
+			errchk::hres(pDevice->CreateBuffer(&pdesc, &subRes, &pBuffer));
 		}
 		void Bind() override
 		{
 			pContext->IASetVertexBuffers(0, 1, pBuffer.GetAddressOf(), &stride, &offset);
 		}
-
 	private:
-		
 	};
 
-	struct VertexBuff: public Buffer, public Bindable
+	class VertexBuffer : public Buffer , public Bindable
 	{
-		VertexBuff(enBuffer& enbuf) : Buffer(enbuf.count(), enbuf.layout_size())
+	public:
+		using handle = std::shared_ptr<VertexBuffer>;
+		VertexBuffer(enBuffer enbuf, std::string modelName="") : Buffer(enbuf.count(), enbuf.layout_size())
 		{
 			D3D11_BUFFER_DESC pdesc{};
 			pdesc.ByteWidth = stride * count;
@@ -62,21 +67,25 @@ namespace En3rN::DX
 			pdesc.CPUAccessFlags = 0;
 			pdesc.MiscFlags = 0;
 			pdesc.StructureByteStride = stride;
-			D3D11_SUBRESOURCE_DATA subRes{ enbuf.data().data(),0,0 };
-			errchk::hres(pDevice->CreateBuffer(&pdesc, &subRes, &pBuffer), EnExParam);
+			D3D11_SUBRESOURCE_DATA subRes{ enbuf.data(),0,0 };
+			errchk::hres(pDevice->CreateBuffer(&pdesc, &subRes, &pBuffer));
 		}
+		VertexBuffer(const VertexBuffer& other) = default;
+		VertexBuffer(VertexBuffer&& other) = default;
+		~VertexBuffer() = default;
+
 		void Bind() override
 		{
 			pContext->IASetVertexBuffers(0, 1, pBuffer.GetAddressOf(), &stride, &offset);
 		}
-
 	};
 
 	
-	class IndexBuffer : public Buffer, public Bindable
+	class IndexBuffer : public Buffer , public Bindable
 	{
 	public:
-		IndexBuffer(std::vector<uint16_t>& data) :Buffer(data.size(), sizeof(uint16_t))
+		using handle = std::shared_ptr<IndexBuffer>;
+		IndexBuffer(std::vector<uint16_t> data,  std::string modelName="") :Buffer(data.size(), sizeof(uint16_t))
 		{
 			D3D11_BUFFER_DESC pdesc{};
 			pdesc.ByteWidth = stride * count;
@@ -86,58 +95,112 @@ namespace En3rN::DX
 			pdesc.MiscFlags = 0;
 			pdesc.StructureByteStride = stride;
 			D3D11_SUBRESOURCE_DATA subRes{ data.data(),0,0 };
-			errchk::hres(pDevice->CreateBuffer(&pdesc, &subRes, &pBuffer), EnExParam);
+			errchk::hres(pDevice->CreateBuffer(&pdesc, &subRes, &pBuffer));
 		}
-		std::string GetKey(std::string modelname)
-		{
-			return typeid(IndexBuffer).name() +'#' + modelname;
-		}
+		IndexBuffer(const IndexBuffer& other) = default;
+		IndexBuffer(IndexBuffer&& other) = default;
+		~IndexBuffer() = default;
 		void Bind() override
 		{
 			pContext->IASetIndexBuffer(pBuffer.Get(), DXGI_FORMAT::DXGI_FORMAT_R16_UINT, 0);
 		}
 	protected:
-		
 	};
 	
 	template <typename T>
-	class ConstantBuffer :  public Buffer, public DynamicBindable
+	class TConstantBuffer :  public Buffer, public Bindable
 	{
 	public:
-		ConstantBuffer(ConstantBuffer&& other) = default;
-		virtual ~ConstantBuffer() = default;
+		using Data = T;
+		TConstantBuffer(TConstantBuffer&& other) = default;
+		virtual ~TConstantBuffer() = default;
 	protected:		
-		ConstantBuffer(std::vector<T>& data, Entity& parent, uint8_t slot) : parent(parent),  slot(slot),Buffer(data.size(), sizeof(T))
-		{
+		TConstantBuffer(UINT count, uint8_t slot) : Buffer(count, sizeof(T), slot)
+		{			
 			D3D11_BUFFER_DESC pdesc{};
 			pdesc.ByteWidth = stride*count;
-			pdesc.Usage = D3D11_USAGE_DYNAMIC;
+			pdesc.Usage = D3D11_USAGE::D3D11_USAGE_DYNAMIC;
 			pdesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 			pdesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 			pdesc.MiscFlags = 0;
 			pdesc.StructureByteStride = stride;
-			D3D11_SUBRESOURCE_DATA subRes = { &data,0,0 };
-			errchk::hres(pDevice->CreateBuffer(&pdesc, &subRes, &pBuffer), EnExParam);
+			errchk::hres(pDevice->CreateBuffer(&pdesc, nullptr, &pBuffer));
 		};
 	protected:
-		Entity& parent;
-		UINT slot;
-	};
+		void Update(const Data& data)
+		{
+			D3D11_MAPPED_SUBRESOURCE msr{&data,0,0};
+			errchk::hres(pContext->Map(pBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
+			//memcpy(msr.pData, &data, sizeof(data));
+			pContext->Unmap(pBuffer.Get(), 0);
+		}
+	};	
 	
-	class Transform : public ConstantBuffer<DirectX::XMMATRIX>
+	template <typename T>
+	class VSConstantBuffer  : public Buffer, public Bindable
 	{
 	public:
-		using Data = std::vector<DirectX::XMMATRIX>;
-		Transform(Data data, Entity& parent, uint8_t slot = 0) : ConstantBuffer<DirectX::XMMATRIX>(data, parent, slot) {};
-		std::string GetKey()
+		VSConstantBuffer(UINT count, UINT slot) :
+			Buffer(count, sizeof(T), slot)
 		{
-			return typeid(Transform).name();
-		}
+			D3D11_BUFFER_DESC pdesc{};
+			pdesc.ByteWidth = stride * count;
+			pdesc.Usage = D3D11_USAGE::D3D11_USAGE_DYNAMIC;
+			pdesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+			pdesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+			pdesc.MiscFlags = 0;
+			pdesc.StructureByteStride = stride;
+			errchk::hres(pDevice->CreateBuffer(&pdesc, NULL, &pBuffer));
+		};	
+		~VSConstantBuffer() = default;
 		void Bind() override
 		{
-			Update();
-			pContext->VSSetConstantBuffers(0, 1, pBuffer.GetAddressOf());
+			pContext->VSSetConstantBuffers(slot, 1, pBuffer.GetAddressOf());
 		}
-		void Update() override;
+		void Update(const T& data)
+		{
+			D3D11_MAPPED_SUBRESOURCE msr{};
+			errchk::hres(pContext->Map(pBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
+			memcpy(msr.pData, &data, sizeof(data)*count);
+			pContext->Unmap(pBuffer.Get(), 0);
+		}
+		void Update(const Job& e) override;
+	private:
 	};
+	// template on datastructure
+	template <typename T>
+	class PSConstantBuffer : public Buffer, public Bindable
+	{
+	public:
+		PSConstantBuffer(UINT count, UINT slot) :
+			Buffer(count,sizeof(T),slot)
+		{
+			D3D11_BUFFER_DESC pdesc{};
+			pdesc.ByteWidth = stride * count;
+			pdesc.Usage = D3D11_USAGE::D3D11_USAGE_DYNAMIC;
+			pdesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+			pdesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+			pdesc.MiscFlags = 0;
+			pdesc.StructureByteStride = stride;
+			errchk::hres(pDevice->CreateBuffer(&pdesc, NULL, &pBuffer));
+		};
+		~PSConstantBuffer() = default;
+
+		void Bind() override
+		{
+			pContext->PSSetConstantBuffers(slot, 1, pBuffer.GetAddressOf());
+		}
+		void Update(const T& data)
+		{
+			D3D11_MAPPED_SUBRESOURCE msr{};
+			errchk::hres(pContext->Map(pBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
+			memcpy(msr.pData, &data, sizeof(data));
+			pContext->Unmap(pBuffer.Get(), 0);
+		}
+		void Update(const Job& e) override;
+	private:
+	};
+	
+	
+
 }

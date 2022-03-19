@@ -1,39 +1,56 @@
 #pragma once
 #include "vec.h"
+#include "entt\entt.hpp"
 #include <string>
-namespace En3rN
+
+namespace En3rN::DX
 {
 	class Entity
 	{
 	public:
-		Entity();
-		Entity(float posx, float posy, float posz, float dirx, float diry, float dirz, float scalex, float scaley, float scalez);
-		Vec3f& GetPosition() { return pos; }
-		Vec3f& GetDirection() { return dir; }
-		Vec3f& GetAngles() { return angles; }
-		Vec3f& GetScale() { return scale; }
-		void Move(Vec3f& move);
-		void SetPosition(float x, float y, float z);
-		void SetPosition(Vec3f& position);
-		void SetDirection(float x, float y, float z);
-		void SetDirection(Vec3f& direction);
-		void SetDirectionFromAngles();
-		void SetScale(float x, float y, float z);
-		void SetScale(Vec3f& scale);
-		virtual void UpdateViewMatrix();
+		using Container = std::vector<Entity>;
+
+		Entity(entt::registry& registry, std::string&& name);
+
+		Entity(Entity&& other) noexcept = default;
+		Entity& operator = (Entity&& other) noexcept = default;
+
+		const std::string& GetName() const;
+		
+		void SetName(std::string&& name);
+
+		bool operator == (entt::entity entt) {
+			return m_handle.entity() == entt;
+		}
+
+		template <class Component, typename ... Constructorargs>
+		void AddComponent(Constructorargs ... args)
+		{
+			m_handle.emplace<Component>(args ...);
+		}
+		void AddChild(Entity&& entity);
+		template <class T>
+		T& GetComponent()
+		{
+			return m_handle.get<T>();
+		}
+		template <typename ... Ts>
+		auto GetComponents()
+		{
+			return m_handle.try_get<Ts ...>();
+		};
+		
+		entt::entity UISelector(entt::entity selected);
+		auto UIControls();
+		
 		virtual ~Entity() = default;
-		virtual const DirectX::XMMATRIX& GetViewMatrix();
 	protected:
-		static size_t idCounter;
-		std::string name;
-		size_t id;
-		Vec3f pos;
-		Vec3f dir;
-		Vec3f angles;
-		Vec3f scale;
-		uint8_t speed;
-		uint8_t acceleration;
-		DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixIdentity();
+		size_t GenerateUID();
+		entt::handle    m_handle;
+	private:
+		bool ui_open = false;
+		Entity::Container m_children;
 	};
+	
 
 }

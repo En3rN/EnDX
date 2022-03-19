@@ -2,48 +2,56 @@
 #include "EnDX.h"
 namespace En3rN
 {
+	Event::handle Event::Create(Event::Category category, Event::Type type, WPARAM wparam, LPARAM lparam)
+	{
+		return std::make_shared<Event>(category, type, wparam, lparam);
+	}
 
-	void En3rN::EventListener::Register()
+	void En3rN::Event::Listener::Register()
 	{
 		auto& eh = DX::Window::GetEventHandler();
 		eh.Register(this);
 	}
 
-	void En3rN::EventListener::Unregister()
+	void En3rN::Event::Listener::Unregister()
 	{
 		auto& eh = DX::Window::GetEventHandler();
 		eh.Unregister(this);
 	}
-	
-	void EventHandler::AddEvent(Event& event)
+
+	void Event::Handler::AddEvent(Event event)
 	{
-		eventQue.push_back(event);
+		eventQue.push(event);
 	}
-	void EventHandler::Register(EventListener* listener)
+	void Event::Handler::Register(Event::Listener* listener)
 	{
 		listeners.push_back(listener);
 	}
-	void EventHandler::Unregister(EventListener* listener)
+	void Event::Handler::Unregister(Event::Listener* listener)
 	{
-		//auto it = std::remove_if(listeners.begin(), listeners.end(), listener);
+		for(auto it=listeners.begin();it<listeners.end();++it)
+			if (*it == listener) {
+				listeners.erase(it);
+				break;
+			}
+		//std::erase_if(listeners, [&]() {it == listeners; })
 	}
 
-	void EventHandler::ProcessEvents()
+	void Event::Handler::ProcessEvents()
 	{
 		while (!eventQue.empty())
 		{
-			for (auto listener : listeners)
-			{
-				if (listener->OnEvent(eventQue.front())) break;
-			}
-			eventQue.pop_front();
+			for (auto& listener : listeners)
+				if (listener->OnEvent(eventQue.front())) 
+					break;
+			eventQue.pop();
 		}
 	}
 
 	En3rN::Event::Event(Category category,Event::Type type, WPARAM wparam, LPARAM lparam) :
 		category(category), type(type), status(Event::Status::NotHandled), wparam(wparam), lparam(lparam)
 	{
-		DX::Window::GetEventHandler().AddEvent(*this);
+		
 	}
 
 }

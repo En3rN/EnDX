@@ -4,7 +4,9 @@
 namespace En3rN
 {
 	constexpr auto PI_D = 3.14159265358979323846;
+	constexpr float twoPi = (float)PI_D * 2;
 	constexpr float PI = (float)PI_D;
+	constexpr float halfPI = (float)PI_D / 2;
 	
 	template<typename T>
 	T WrapAngle(T theta) noexcept
@@ -22,19 +24,16 @@ namespace En3rN
 		return mod;
 	}
 	template <typename T>
-	T Wrap(T value, T max)
+	T Wrap(T value,T min, T max)
 	{
-		const T mod = (T)fmod(value, max);
-		if (mod > max)
+		if (value > max)
 		{
-			return mod - max;
+			return min + value-max;
 		}
-		else if (mod < -max)
+		else if (value < min)
 		{
-			return mod + max;
+			return max + value;
 		}
-		return mod;
-
-
+		return value;
 	}
 }

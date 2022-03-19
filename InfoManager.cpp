@@ -1,6 +1,7 @@
 #include "InfoManager.h"
 #include "Graphics.h"
 #include "enexception.h"
+#include "Entity.h"
 
 namespace En3rN::DX
 {
@@ -10,7 +11,7 @@ namespace En3rN::DX
 #ifndef _DEBUG | DEBUG
 		return;
 #endif _DEBUG | DEBUG
-		errchk::hres(device.QueryInterface<ID3D11InfoQueue>(&pInfoQ), EnExParam);
+		errchk::hres(device.QueryInterface<ID3D11InfoQueue>(&pInfoQ));
 		infoManager = this;
 	}
 
@@ -21,11 +22,11 @@ namespace En3rN::DX
 #endif // _DEBUG | DEBUG
 		if (!infoManager) return;
 		auto& im = *infoManager;
-		UINT64 msgs;
-		if (msgs = im.pInfoQ->GetNumStoredMessages())
+		UINT64 msgs = im.pInfoQ->GetNumStoredMessages();
+		if (msgs)
 		{
 			std::string msg;
-			for (auto i = 0; i < im.pInfoQ->GetNumStoredMessages(); i++)
+			for (auto i = 0; i < msgs; i++)
 			{
 				SIZE_T message_size = 0;
 				im.pInfoQ->GetMessageA(i, nullptr, &message_size); //get the size of the message
@@ -38,7 +39,6 @@ namespace En3rN::DX
 			im.pInfoQ->ClearStoredMessages();
 		}
 	}
-
 	bool InfoManager::Empty()
 	{
 		Update();
@@ -46,8 +46,7 @@ namespace En3rN::DX
 		return true;
 #endif // _DEBUG | DEBUG
 		if (!infoManager)  return true;
-		auto& im = *infoManager;
-		return im.infoQ.empty();
+		return infoManager->infoQ.empty();
 	}
 
 	InfoManager::InfoQ InfoManager::GetInfo()
@@ -56,7 +55,6 @@ namespace En3rN::DX
 		return InfoManager::InfoQ{};
 #endif // _DEBUG | DEBUG
 		if (!infoManager)  return InfoManager::InfoQ{};
-		auto& im = *infoManager;
-		return im.infoQ;
+		return infoManager->infoQ;
 	}
 }

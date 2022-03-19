@@ -2,11 +2,10 @@
 #include "enWin.h"
 #include "enString.h"
 #include "InfoManager.h"
+#include <source_location>
 #include <string>
 #include <system_error>
 #include <d3d11.h>
-
-#define EnExParam  __FILE__, __LINE__
 
 namespace En3rN
 {
@@ -15,20 +14,22 @@ namespace En3rN
 	{
 	public:
 		EnExcept() = default;
-		EnExcept(std::string msg, std::string afile, int aline)
+		EnExcept(std::string msg, const std::source_location location= std::source_location::current())
 		{
-			file += afile;
-			line += std::to_string(aline);
+			file += location.file_name();
+			func += location.function_name();
+			line += std::to_string(location.line());
 			errMsg += msg;
-			errMsg += enNL + file + enNL + line;
+			errMsg += enNL + file + enNL + func +enNL + line;
 		}
 		const char* what() { return errMsg.c_str(); }
 		const char* GetType() { return type.c_str(); }
 	protected:
 		std::string type = "EnExcept";
 		std::string file = "[File] ";
+		std::string func = "[Function] ";
 		std::string line = "[Line] ";
-		std::string errMsg = "";
+		std::string errMsg = "[Error] ";
 		std::string dxInfo = "[DXInfo] ";
 		
 	};
@@ -37,7 +38,7 @@ namespace En3rN
 	{
 	public:
 		EnExHR() = default;
-		EnExHR(HRESULT hr, std::string afile, int aline)
+		EnExHR(HRESULT hr, const std::source_location location = std::source_location::current())
 		{
 			if (!En3rN::DX::InfoManager::Empty()) {
 				auto iq = En3rN::DX::InfoManager::GetInfo();
@@ -45,34 +46,30 @@ namespace En3rN
 					dxInfo += i;
 			}
 			type = "EnExHR";
-			file += afile;
-			line += std::to_string(aline);
+			file += location.file_name();
+			func += location.function_name();
+			line += std::to_string(location.line());
 			errMsg += std::system_category().message(hr);
 			
 			errMsg += enNL + dxInfo + enNL + file + enNL + line;
 		}
 	};
-	class EnExHRDXInfo : public EnExHR
+	class EnExDXInfo : public EnExcept
 	{
 	public:
-		EnExHRDXInfo(HRESULT hr, ID3D11InfoQueue* dxInfoQ, std::string afile, int aline)
+		EnExDXInfo(const std::source_location location =
+			std::source_location::current())
 		{
-			type = "EnExDXInfo";
-			file += afile;
-			line += std::to_string(aline);
-			errMsg += std::system_category().message(hr);
-			
-			for (auto i = 0; i < dxInfoQ->GetNumStoredMessages(); i++)
-			{
-				SIZE_T message_size = 0;
-				dxInfoQ->GetMessageA(i, nullptr, &message_size); //,__FILE__,__LINE__); //get the size of the message
-
-				D3D11_MESSAGE* message = (D3D11_MESSAGE*)malloc(message_size); //allocate enough space
-				dxInfoQ->GetMessageA(i, message, &message_size);//, __FILE__, __LINE__); //get the actual message
-				if (message)dxInfo += message->pDescription;
-				dxInfo += enNL;
-				free(message);
+			if (!En3rN::DX::InfoManager::Empty()) {
+				auto iq = En3rN::DX::InfoManager::GetInfo();
+				for (auto& i : iq)
+					dxInfo += i;
 			}
+			type = "EnExDXInfo";
+			file += location.file_name();
+			func += location.function_name();
+			line += std::to_string(location.line());
+
 			errMsg += enNL + dxInfo +enNL+ file + enNL + line;
 		}
 	};
@@ -80,20 +77,19 @@ namespace En3rN
 	{
 	public:
 
-		static void hres(HRESULT hr, std::string file, int line)
+		static void hres(HRESULT hr, const std::source_location location =
+			std::source_location::current())
 		{
 			if (hr == S_OK) return;
 
-			throw EnExHR(hr, file, line);
+			throw EnExHR(hr, location);
 		};
-		inline static void test(HRESULT hr)
+		static void hres(HRESULT hr, std::string msg, const std::source_location location =
+			std::source_location::current())
 		{
-			throw EnExHR(hr, __FILE__, __LINE__);
-		};
-		static void hres(HRESULT hr, ID3D11InfoQueue* dxInfoQ, std::string file, int line)
-		{
-			if (hr == S_OK) return;
-			throw EnExHRDXInfo(hr, dxInfoQ, file, line);
+			if(hr == S_OK)
+				return;
+			throw EnExcept(msg, location);
 		};
 	};
 }

@@ -16,26 +16,23 @@
 #include "Sampler.h"
 #include "enMath.h"
 #include "Behavior.h"
+#include "enBuffer.h"
 #include <vector>
 #include <DirectXMath.h>
-
+#include "Transform.h"
 
 namespace En3rN::DX
 {
-	class Cube : public DynamicDrawable
+	class Cube : public Drawable
 	{
 	public:
 		Cube() 
 		{
-			//vertecies
 			float x = 1.0f / 4.0f;
 			float y = 1.0f / 3.0f;
 			float p = 0.5f;
-			UpdateViewMatrix();
-
-			std::vector<VertexPos> vertecies
+			VertexElement::Pos positions[]
 			{
-
 				{-p,+p,+p,}, //up    // 0.0f,1.0f
 				{+p,+p,+p,},         // 1.0f,1.0f
 				{+p,+p,-p,},         // 1.0f,0.0f
@@ -61,6 +58,15 @@ namespace En3rN::DX
 				{+p,-p,+p,},		 // 1.0f,0.0f
 				{-p,-p,+p,},		 // 0.0f,0.0f
 			};
+			VertexElement::Normal normals[]
+			{
+				{0.f,1.f,0.f},{0.f,1.f,0.f},{0.f,1.f,0.f},{0.f,1.f,0.f},
+				{-1.f,0.f,0.f},{-1.f,0.f,0.f},{-1.f,0.f,0.f},{-1.f,0.f,0.f},
+				{0.f,0.f,-1.f},{0.f,0.f,-1.f},{0.f,0.f,-1.f},{0.f,0.f,-1.f},
+				{1.f,0.f,0.f},{1.f,0.f,0.f},{1.f,0.f,0.f},{1.f,0.f,0.f},
+				{0.f,0.f,1.f},{0.f,0.f,1.f},{0.f,0.f,1.f},{0.f,0.f,1.f},
+				{0.f,-1.f,0.f},{0.f,-1.f,0.f},{0.f,-1.f,0.f},{0.f,-1.f,0.f},
+			};
 			std::vector<uint16_t> indecies
 			{
 				0, 1, 2, 2, 3, 0,
@@ -71,33 +77,42 @@ namespace En3rN::DX
 			   20,21,22,22,23,20
 			};
 
+
+			
+			
+			auto vs = BindableManager::Query<VertexShader>("VertexShader.cso");		//("VertexShader.cso");
+			auto signatures = vs->GetSignatures();
+			enBuffer buf;
+			buf.add_element(positions,std::size(positions));
+			buf.add_element(normals, std::size(normals));
+			buf.create_buffer(signatures);
+			//auto indecies = buf.indecies(4);
 			indexCount = (UINT)std::size(indecies);
-			auto vs = std::make_unique  <VertexShader>(L"VertexShader.cso");
-			AddBindable(std::make_unique<VertexBuffer<VertexPos>>(vertecies));
-			AddBindable(std::make_unique<InputLayout>(InputLayout::Position, vs->GetBlob()));
-			AddBindable(std::make_unique<IndexBuffer>(indecies));
-			AddBindable(std::make_unique<PixelShader>(L"PSSkybox.cso"));
+			AddBindable(BindableManager::Query<PixelShader>("Test.cso"));	//("PSSkybox.cso"));
+			AddBindable(BindableManager::Query<InputLayout>			(signatures, vs->GetBlob(),"cube"));
+			AddBindable(BindableManager::Query<VertexBuffer>		(buf,"cube"));
+			AddBindable(BindableManager::Query<IndexBuffer>			(buf.indecies(4), "cube"));
+			AddBindable(BindableManager::Query<Texture>				("cube.png",0, Texture::Type::CubeMap));
+			AddBindable(BindableManager::Query<Sampler>				(Sampler::State::Wrap));
+			AddBindable(BindableManager::Query<Rasterizer>			(Rasterizer::State::Back));
+			AddBindable(BindableManager::Query<Stencil>				(Stencil::State::DepthOnly));
+			AddBindable(BindableManager::Query<Transform::ConstantBuffer>	(1,1));
 			AddBindable(std::move(vs));
-			AddBindable(BindableManager::Query<Texture>(L"cube.png", Texture::Type::CubeMap));
-			AddBindable(std::make_unique <Sampler>(Sampler::State::Wrap));
-			AddBindable(std::make_unique <Rasterizer>(State::Back));
-			AddBindable(std::make_unique <Stencil>(Stencil::State::DepthStencilEnabled));
-			AddBindable(std::make_unique<Transform>(Transform::Data{ viewMatrix }, * this));
-			behavior = Behaviors::Get(id);
+			//behavior = Behaviors::Get(id);
 		}
 		Cube(Vec3f worldpos) : Cube(){
-			SetPosition(worldpos);
 		}
 		Cube(Vec3f worldpos, Vec3f dirvec) :Cube(){
-			SetPosition(worldpos);
-			SetDirection(dirvec);
+			
+			
 		}
 		Cube(Cube&& other) = default;
 		void Update(float dt) override 
 		{
-			behavior(*this, dt);
+			//behavior(*this, dt);
 		}
-		void Draw() override{
+		void Draw() override
+		{
 			pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			pContext->DrawIndexed(indexCount, 0, 0);
 		};

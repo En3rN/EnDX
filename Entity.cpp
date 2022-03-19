@@ -1,77 +1,100 @@
 #include "Entity.h"
+#include "Component.h"
 #include "logger.h"
-#include "Window.h"
+#include "RandomFactory.h"
 
-namespace En3rN
+
+namespace En3rN::DX
 {
-	using namespace DirectX;
-	using namespace DX;
+	//ennt ecample
 
-	size_t Entity::idCounter = -1;
-	Entity::Entity() : pos{}, dir{ 0.0f,0.0f,0.0f }, angles{ .0f,.0f,0.f }, scale{ 1.0f ,1.0f ,1.0f }, speed(1), acceleration(0)
-	{ 
-		idCounter++;
-		id = idCounter;
-		name = std::to_string(idCounter);
-		UpdateViewMatrix(); 
-	}
-	
-	Entity::Entity(float posx, float posy, float posz, float dirx, float diry, float dirz, float scalex, float scaley, float scalez)
+    //void update(entt::registry& registry) {
+    //    auto view = registry.view<const position, velocity>();
+
+    //    // use a callback
+    //    view.each([](const auto& pos, auto& vel) { /* ... */ });
+
+    //    // use an extended callback
+    //    view.each([](const auto entity, const auto& pos, auto& vel) { /* ... */ });
+
+    //    // use a range-for
+    //    for(auto [entity, pos, vel] : view.each()) {
+    //        // ...
+    //    }
+
+    //    // use forward iterators and get only the components of interest
+    //    for(auto entity : view) {
+    //        auto& vel = view.get<velocity>(entity);
+    //        // ...
+    //    }
+    //}
+
+    //int main() {
+    //    entt::registry registry;
+
+    //    for(auto i = 0u; i < 10u; ++i) {
+    //        const auto entity = registry.create();
+    //        registry.emplace<position>(entity, i * 1.f, i * 1.f);
+    //        if(i % 2 == 0) { registry.emplace<velocity>(entity, i * .1f, i * .1f); }
+    //    }
+
+    //    update(registry);
+    //}
+
+
+    Entity::Entity(entt::registry& registry, std::string&& name) :
+        m_handle (registry, registry.create())
+    {
+        m_handle.emplace<UIDComponent>(GenerateUID());
+        m_handle.emplace<TagComponent>(std::move(name));
+    }
+
+    const std::string& Entity::GetName() const
+    {
+        { return m_handle.get<TagComponent>().tag; }
+    }
+
+    void Entity::SetName(std::string&& name)
 	{
-		idCounter++;
-		id = idCounter;
-		SetPosition(posx, posy, posz);
-		SetDirection(dirx, diry, dirz);
-		SetScale(scalex, scaley, scalez);
-		UpdateViewMatrix();
+		m_handle.get<TagComponent>().tag = std::move(name);
 	}
-	void Entity::Move(Vec3f& move)
+
+    void Entity::AddChild(Entity&& entity)
+    {
+        m_children.push_back(std::move(entity));
+    }
+
+    entt::entity Entity::UISelector(entt::entity selected)
+    {        
+        ImGuiTreeNodeFlags flags{};
+        if(selected == m_handle.entity())
+            flags |= ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_Selected;
+        if(m_children.empty())
+            flags |= ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_Leaf;
+        ui_open = ImGui::TreeNodeEx(GetName().c_str(), flags);
+        if(ImGui::IsItemClicked()) {            
+            selected = m_handle.entity();
+            std::string debug = GetName() + "\n";
+            Logger::Debug(debug.c_str());
+        }
+        if(ui_open) {
+            for(auto& entity : m_children)
+                selected = entity.UISelector(selected);
+            ImGui::TreePop();
+        }
+        return selected;
+    }
+
+    auto Entity::UIControls()
+    {
+        auto [tag, uid, transform] = m_handle.try_get<TagComponent,UIDComponent, Transform>();
+
+        return;
+    }
+
+    size_t Entity::GenerateUID()
 	{
-		pos += move;
-	}
-	void Entity::SetPosition(float x, float y, float z)
-	{
-		Vec3f p = { x,y,z };
-		SetPosition(p);
-	}
-	void Entity::SetPosition(Vec3f& position)
-	{
-		pos = position;
-	}
-	void Entity::SetDirection(float x, float y, float z)
-	{
-		Vec3f newDir(x, y, z);
-		SetDirection(newDir);
-	}
-	void Entity::SetDirectionFromAngles() {
-		Vec3 base(.0f, .0f, 1.f);
-		dir = base.Rotate(angles.x, angles.y, angles.z);
-	}
-	void Entity::SetDirection(Vec3f& direction) 
-	{
-		dir=XMVector3Normalize(direction);
-	}
-	void Entity::SetScale(float x, float y, float z)
-	{
-		Vec3f s = { x,y,z };
-		SetScale(s);
-	}
-	void Entity::SetScale(Vec3f& scale)
-	{
-		this->scale = scale;
-	}
-	void Entity::UpdateViewMatrix()
-	{
-		viewMatrix =
-			XMMatrixRotationX(angles.x) *
-			XMMatrixRotationY(angles.y) *
-			XMMatrixRotationZ(angles.z) *
-			XMMatrixScaling(scale.x, scale.y, scale.z) *
-			XMMatrixTranslation(pos.x, pos.y, pos.z);
-	}
-	const DirectX::XMMATRIX& Entity::GetViewMatrix() 
-	{ 
-		UpdateViewMatrix();
-		return viewMatrix; 
-	}
+		return RandomFactory().UID();
+	}  
+
 };
