@@ -5,6 +5,7 @@
 #include "logger.h"
 #include "Scene.h"
 #include "InfoManager.h"
+#include "Renderer.h"
 
 namespace En3rN::DX
 {
@@ -15,12 +16,12 @@ namespace En3rN::DX
 		friend class GfxResources;
 	public:
 		Graphics(HWND hWind, uint16_t with, uint16_t height, bool fullscreen);
+		Renderer& GetRenderer() { return m_renderer; }
 		void ClearState();
-		void SetFullscreen(bool fullscreen);
+		void SetPresent(bool present);
+		void SetFullscreen();
 		void OnResize(int width, int height);
 		void CreateBuffers(uint16_t width, uint16_t height);
-		void LoadCube();
-		void UpdateCube(float dt);
 		void LoadScene();
 		void BeginFrame(float dt);
 		/*void UpdateScene(float dt, Keyboard & kbd, Mouse & mouse);
@@ -28,7 +29,7 @@ namespace En3rN::DX
 		void EndFrame();
 		~Graphics()=default;
 	private:
-		D3D11_VIEWPORT viewport{};
+		D3D11_VIEWPORT viewport[8]{};
 		InfoManager::handle infoManager;
 		ComPtr<IDXGIFactory> pIDXGIFactory;
 		ComPtr<IDXGIAdapter> pAdapter;
@@ -38,13 +39,11 @@ namespace En3rN::DX
 		ComPtr<ID3D11DepthStencilState> pDepthStensilState;
 		ComPtr<ID3D11DepthStencilView> pDepthStencilView;
 		ComPtr<ID3D11RenderTargetView> pRenderTargetView;
-		ComPtr<ID3D11BlendState> pBlendState;
-		ComPtr<ID3D11InfoQueue> pInfoQ;
-		ComPtr<ID3D11PixelShader> pPixelShader;
-		ComPtr<ID3D11Buffer> pCBuf;
+		Renderer m_renderer;
 		float angle = 0;
-		bool show_demo_window = true;
+		bool show_demo_window = false;
 		bool fullscreen;
+		bool present = true;
 		//bool showlogger = true;
 	};
 

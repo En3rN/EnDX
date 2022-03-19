@@ -1,31 +1,76 @@
 #pragma once
 #include "Texture.h"
+#include "Buffer.h"
+#include "Shader.h"
+#include "Teqnique.h"
+#include <bitset>
 #include <stdint.h>
 #include <vector>
 
+class aiMaterial;
 
 namespace En3rN::DX
 {
 	class Material
 	{
 	public:
-		enum class MapType {Texture, Normal, Specular};
 		using Container = std::vector<Material>;
-		Material();
-		void Add(MapType type, Texture::handle);
-		bool HasDiffuseMap();
-		bool HasSpecularMap();
-		bool HasNormalMap();
+		using Index = uint32_t;
+		enum class Map { Diffuse, Normal, Specular };
+		
+		// vec4f diff, vec3f specColor, float sIntenity, vec3f specPow
+		struct Data
+		{
+			Vec4f				diffuse;
+			Vec3f				specular;
+			float				specularPower;
+			Vec3f				emissive;
+			float				specularIntensity;
+		};
+		
+		using ConstantBuffer = PSConstantBuffer<Data>;
+
+		Material() = default;
+		Material(const aiMaterial* aimaterial, std::filesystem::path modelPath="");
+		Material(Material::Data && data);
+		Material(const Material & other) = default;
+		Material(Material && other) = default;
+		Material& operator = (const Material & other) = default;
+		Material& operator = (Material && other) = default;
 		~Material() = default;
+
+		ConstantBuffer& GetMaterialConstantBuffer() { return *m_constantBuffer.get(); }
+		const Data& GetData() const { return m_data; }
+
+		auto Size() const {return UINT{ sizeof Data };};
+
+		void SetDiffuse				(Vec4f&& diffuse);
+		void SetSpecular			(Vec3f&& specular);
+		void SetEmissive			(Vec3f&& emissive);
+		void SetSpecularIntensity	(float specIntensity);
+		void SetSpecularPower		(float specPower);
+		//void SetShader				(const Teqnique& tecnique);
+
+		void UpdateConstantBuffer();
+
+		void AddTextureMap(Map map, const std::shared_ptr<Texture> texture);
+		
+		const bool HasMap(Map map) const;
+		void SetPixelShader(std::filesystem::path filename);
+
+		void Bind() const;
+
+		const std::string GetShaderEntryPoint() const;
+
+		bool UIControls();
 		
 	private:
-		uint32_t				m_diffuse;
-		uint8_t					m_specularIntensity;
-		uint8_t					m_specularPower;
-		bool					m_hasTexture;
-		bool					m_hasSpecularmap;
-		bool					m_hasNormalmap;
-		Texture::Container		m_textures;
+		Data							m_data;
+		std::bitset<3>					m_hasMap;
+		Texture::Container				m_textures;
+		bool							m_updateConstantBuffer;
+		std::shared_ptr<ConstantBuffer>	m_constantBuffer;
+		PixelShader::handle				m_debugShader = nullptr;
 	};
 }
 
