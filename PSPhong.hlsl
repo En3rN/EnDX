@@ -55,9 +55,10 @@ LightParameters CalculateLightParameters(Lights light, float3 position)
     result.dirToL = normalize(result.dirToL);
 
     float dotL = dot(light.direction, result.dirToL);
-    float inLight = dotL > light.cone;
+    float conAtt = saturate((dotL - light.cone) * 1);
+    conAtt *= conAtt;
     //float inLight = 1;
-    result.color = light.color.rgb * inLight * Attenuate(light.attenuation.x, light.attenuation.y, light.attenuation.z,result.disToL);
+    result.color = light.color.rgb * conAtt * Attenuate(light.attenuation.x, light.attenuation.y, light.attenuation.z,result.disToL);
     return result;
 }
 
