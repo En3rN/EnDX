@@ -92,7 +92,7 @@ namespace En3rN::DX
 			AddBindable(BindableManager::Query<InputLayout>			(signatures, vs->GetBlob(),"cube"));
 			AddBindable(BindableManager::Query<VertexBuffer>		(buf,"cube"));
 			AddBindable(BindableManager::Query<IndexBuffer>			(buf.indecies(4), "cube"));
-			AddBindable(BindableManager::Query<Texture>				("cube.png",0, Texture::Type::CubeMap));
+			AddBindable(BindableManager::Query<Texture>				(std::filesystem::path("cube.png"),0, Texture::Type::CubeMap));
 			AddBindable(BindableManager::Query<Sampler>				(Sampler::State::Wrap));
 			AddBindable(BindableManager::Query<Rasterizer>			(Rasterizer::State::Back));
 			AddBindable(BindableManager::Query<Stencil>				(Stencil::State::DepthOnly));

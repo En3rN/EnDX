@@ -14,10 +14,11 @@ namespace En3rN::DX
 	{
 		ImGui::DragFloat4("Ambient", &m_data.Ambient.x, 0.1f, 0, 1);
 		ImGui::DragFloat4("Color", &m_data.Light->Color.x, 0.1f, 0, 1);
-		ImGui::DragFloat4("Attenuation", &m_data.Light->Attenuation.x, 0.1f, 0, 1);
+		ImGui::DragFloat3("Attenuation", &m_data.Light->Attenuation.x, 0.1f, 0, 1);
 		ImGui::DragFloat3("Position", &m_data.Light->Position.x);
 		ImGui::DragFloat3("Direction", &m_data.Light->Direction.x,0.05f, -1, 1);
-		ImGui::DragFloat("Cone",&m_data.Light->Cone, 0.05f, 0, 1);
+		ImGui::DragFloat("Cone",&m_data.Light->ConeInner, 0.05f, 0, 1);
+		ImGui::DragFloat("Cone", &m_data.Light->ConeOuter, 0.05f, 0, 1);
 	}
 	void Light::OnAttach()
 	{
@@ -63,7 +64,8 @@ namespace En3rN::DX
 				auto& transform = m_registry.get<TransformComponent>(entity);
 				data.Color = light.Color;
 				data.Attenuation = light.Attenuation;
-				data.Cone = light.Cone;
+				data.ConeInner = light.ConeInner;
+				data.ConeOuter = light.ConeOuter;
 				data.IsDirectional = false;
 				data.Position = transform.Position;
 				data.Direction = Transform::GetDirection(transform.Angles);

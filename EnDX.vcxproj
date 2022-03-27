@@ -230,6 +230,7 @@
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="iHandle.h" />
     <ClInclude Include="RenderTarget.h" />
+    <ClInclude Include="Resource.h" />
     <ClInclude Include="Vendor\imgui\imconfig.h" />
     <ClInclude Include="InfoManager.h" />
     <ClInclude Include="InputLayout.h" />
@@ -311,6 +312,7 @@
     <ClCompile Include="RecT.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderTarget.cpp" />
+    <ClCompile Include="Resource.cpp" />
     <ClCompile Include="Sampler.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Shader.cpp" />
