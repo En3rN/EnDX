@@ -62,12 +62,13 @@ namespace En3rN::DX
 					ImGui::ColorEdit3("Directionallight Color", &component->Color.x, coloreditFlags);
 				if constexpr(std::is_same_v<PointLightComponent*, T>) {
 					ImGui::ColorEdit3("Pointlight Color", &component->Color.x, coloreditFlags);
-					ImGui::DragFloat4("Attenuation", &component->Attenuation.x);
+					ImGui::DragFloat3("Attenuation", &component->Attenuation.x);
 				}
 				if constexpr(std::is_same_v<SpotLightComponent*, T>) {
 					ImGui::ColorEdit3("Spotlight Color", &component->Color.x, coloreditFlags);
-					ImGui::DragFloat4("Attenuation", &component->Attenuation.x);
-					ImGui::SliderFloat("Cone", &component->Cone, 0, 1);
+					ImGui::DragFloat3("Attenuation", &component->Attenuation.x);
+					ImGui::SliderFloat("ConeInner", &component->ConeInner, 0, 1);
+					ImGui::SliderFloat("ConeOuter", &component->ConeOuter, 0, 1);
 				}
 				if constexpr(std::is_same_v<TransformComponent*, T>) {
 					UIControls(*component);

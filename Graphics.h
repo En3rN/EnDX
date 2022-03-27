@@ -31,7 +31,7 @@ namespace En3rN::DX
 	private:
 		D3D11_VIEWPORT viewport[8]{};
 		InfoManager::handle infoManager;
-		ComPtr<IDXGIFactory> pIDXGIFactory;
+		ComPtr<IDXGIFactory2> pIDXGIFactory;
 		ComPtr<IDXGIAdapter> pAdapter;
 		ComPtr<ID3D11Device> pDevice;
 		ComPtr<ID3D11DeviceContext> pContext;
