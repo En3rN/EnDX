@@ -19,11 +19,12 @@ namespace En3rN::DX
 			struct Common 
 			{
 				Vec4f Color = {0,0,0,0};
-				Vec4f Attenuation = {1,0.5,0.25,0.125};
+				Vec3f Attenuation = {1,0.025,0.03};
+				float ConeOuter{ 1 };
 				Vec3f Position{};
 				BOOL  IsDirectional{};
 				Vec3f Direction{};
-				float Cone{};
+				float ConeInner{1};
 			} Light[numLights];
 		};
 		using ConstantBuffer = PSConstantBuffer<Data>;

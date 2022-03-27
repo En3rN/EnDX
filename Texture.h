@@ -18,12 +18,13 @@ namespace En3rN::DX
 		using handle = std::shared_ptr<Texture>;
 		using Container = std::vector<std::shared_ptr<Texture>>;
 		enum class Type{Default, CubeMap};
-		Texture(std::filesystem::path file, UINT slot=0, Type type= Type::Default);
+		explicit Texture(std::filesystem::path file, UINT slot=0, Type type= Type::Default);
+		explicit Texture(ComPtr<ID3D11Texture2D> tex, UINT slot, Type type = Type::Default);
 		void Bind();
 	private:
 		UINT							 m_slot;
 		ComPtr<ID3D11Texture2D>          m_texture;
-		ComPtr<ID3D11ShaderResourceView> pTextureView;
+		ComPtr<ID3D11ShaderResourceView> m_srv;
 	};
 	
 	

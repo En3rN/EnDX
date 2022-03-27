@@ -1,5 +1,6 @@
 #include "RenderTarget.h"
 #include "enexception.h"
+#include <variant>
 #include <algorithm>
 namespace En3rN::DX
 {
@@ -19,6 +20,7 @@ namespace En3rN::DX
 		texDesc.MiscFlags = 0;
 		
 		ComPtr<ID3D11Texture2D> tex;
+
 		errchk::hres(pDevice->CreateTexture2D(&texDesc, nullptr, &tex));
 
 		D3D11_RENDER_TARGET_VIEW_DESC desc{};
@@ -26,9 +28,64 @@ namespace En3rN::DX
 		desc.ViewDimension = D3D11_RTV_DIMENSION::D3D11_RTV_DIMENSION_TEXTURE2D;
 		errchk::hres(pDevice->CreateRenderTargetView(tex.Get(), &desc, &m_rtv));		
 	}
-	bool RenderTarget::Set(DepthStencil& depthStencil)
+	RenderTarget::RenderTarget(Resource& resource)
 	{
-		pContext->OMSetRenderTargets(1, m_rtv.GetAddressOf(), depthStencil.Get());
+		D3D11_RESOURCE_DIMENSION resourceDimention = resource.GetDimension();
+		D3D11_RENDER_TARGET_VIEW_DESC RTVdesc{};
+		switch(resourceDimention)
+		{
+		case D3D11_RESOURCE_DIMENSION_UNKNOWN:			
+			break;
+		case D3D11_RESOURCE_DIMENSION_BUFFER:
+		{
+			D3D11_BUFFER_DESC desc{};
+			ID3D11Buffer* r = static_cast<ID3D11Buffer*>(resource.GetP());
+			r->GetDesc(&desc);
+		}
+			break;
+		case D3D11_RESOURCE_DIMENSION_TEXTURE1D:
+		{
+			D3D11_TEXTURE1D_DESC desc{};
+			ID3D11Texture1D* r = static_cast<ID3D11Texture1D*>(resource.GetP());
+			r->GetDesc(&desc);
+			RTVdesc.Format = desc.Format;
+			RTVdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE1D;
+			RTVdesc.Texture1D.MipSlice = 0;
+		}
+			break;
+		case D3D11_RESOURCE_DIMENSION_TEXTURE2D:
+		{
+			D3D11_TEXTURE2D_DESC desc{};
+			ID3D11Texture2D* r = static_cast<ID3D11Texture2D*>(resource.GetP());
+			r->GetDesc(&desc);
+			RTVdesc.Format = desc.Format;
+			RTVdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+			RTVdesc.Texture2D.MipSlice = 0;
+		}
+			break;
+		case D3D11_RESOURCE_DIMENSION_TEXTURE3D:
+		{
+			D3D11_TEXTURE3D_DESC desc{};
+			ID3D11Texture3D* r = static_cast<ID3D11Texture3D*>(resource.GetP());
+			r->GetDesc(&desc);
+			RTVdesc.Format = desc.Format;
+			RTVdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE3D;
+			RTVdesc.Texture3D.MipSlice = 0;
+			RTVdesc.Texture3D.FirstWSlice = 0;
+			RTVdesc.Texture3D.WSize = -1;
+		}
+			break;
+		default:
+			break;
+		}
+		errchk::hres(pDevice->CreateRenderTargetView(resource.GetP(), &RTVdesc, &m_rtv));
+
+		
+
+	}
+	bool RenderTarget::Set(DepthStencil* depthStencil = nullptr)
+	{
+		pContext->OMSetRenderTargets(1, m_rtv.GetAddressOf(), depthStencil->Get());
 		return true;
 	}
 	bool RenderTarget::Clear(Vec4f color)
@@ -38,12 +95,8 @@ namespace En3rN::DX
 	}
 	auto RenderTarget::GetResource()
 	{
-		ComPtr<ID3D11Resource> resource;
-		ComPtr<ID3D11Texture2D> tex;
-		D3D11_RESOURCE_DIMENSION dimension{};
+		ComPtr<ID3D11Resource> resource;		
 		m_rtv->GetResource(&resource);
-		resource->GetType(&dimension);
-		resource.As(&tex);
-		return tex;
+		return resource;
 	}
 }

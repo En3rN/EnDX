@@ -36,7 +36,7 @@ namespace En3rN::DX
 			Pass(Pass::Name::Fullscreen),
 			Pass(Pass::Name::Skybox))
 	{
-		errchk::hres(CreateDXGIFactory1(__uuidof(IDXGIFactory1), &pIDXGIFactory));
+		errchk::hres(CreateDXGIFactory1(IID_IDXGIFactory2, &pIDXGIFactory));
 		int i = 0;
 		IDXGIAdapter* adapter = nullptr;
 		std::vector<IDXGIAdapter*> adapters{};
@@ -161,7 +161,7 @@ namespace En3rN::DX
 	void Graphics::CreateBuffers(uint16_t width, uint16_t height){
 		// RenderTarget View
 		ComPtr<ID3D11Texture2D> pBackBuffer;
-		errchk::hres(pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), &pBackBuffer));
+		errchk::hres(pSwapChain->GetBuffer(0, IID_ID3D11Texture2D, &pBackBuffer));
 		errchk::hres(pDevice->CreateRenderTargetView(pBackBuffer.Get(), NULL, &pRenderTargetView));
 		// DepthStencil View
 		D3D11_DEPTH_STENCIL_VIEW_DESC dsVDesc{};

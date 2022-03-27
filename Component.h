@@ -47,13 +47,14 @@ namespace En3rN::DX
 	struct PointLightComponent
 	{
 		Vec4f Color = { 1,1,1,1 };
-		Vec4f Attenuation = { 1,0.2,0.02,0.01 };
+		Vec3f Attenuation = { 1,0.025,0.003 };
 	};
 	struct SpotLightComponent
 	{
 		Vec4f Color = { 1,1,1,1 };
-		Vec4f Attenuation = { 1,0.2,0.02,0.01 };
-		float Cone = 0.8f;
+		Vec3f Attenuation = { 1,0.025,0.003 };
+		float ConeInner = 0.8f;
+		float ConeOuter = 0.8f;
 	};
 	struct TransformComponent
 	{

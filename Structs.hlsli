@@ -13,11 +13,12 @@ struct PSIn
 struct Lights
 {
     float4 color;
-    float4 attenuation;
+    float3 attenuation;
+    float coneOuter;
     float3 position;
     bool isDirectional;
     float3 direction;
-    float cone; // spotlight;
+    float coneInner; // spotlight;
 };
 
 struct LightParameters
@@ -29,8 +30,8 @@ struct LightParameters
 
 struct Light
 {
-    float diffuse;
-    float specular;
+    float3 diffuse;
+    float3 specular;
 };
 
 struct Material

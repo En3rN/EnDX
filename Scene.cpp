@@ -49,13 +49,17 @@ namespace En3rN::DX
 	// create entities here
 	void En3rN::DX::Scene::OnCreate()
 	{
+		Teqnique Debug("Debug");
+		auto defaultsteps = Teqnique::Phong().GetSteps()[0];
+
+
 		auto& ambientDirectionPointlight = CreateEntity();
 		TransformComponent tc;
 		tc.Scale = { 0.1f,.1f,.1f };
 		tc.Position = { 0,0,0 };
 		tc.Angles = { -1.6, 2, 0 };
 		ambientDirectionPointlight.AddComponent<TransformComponent>(std::move(tc));
-		ambientDirectionPointlight.AddComponent<DirectionalLightComponent>();
+		//ambientDirectionPointlight.AddComponent<DirectionalLightComponent>();
 		ambientDirectionPointlight.AddComponent<PointLightComponent>();
 		ambientDirectionPointlight.AddComponent<AmbientLightComponent>();
 		ambientDirectionPointlight.SetName("Lights");
@@ -64,7 +68,7 @@ namespace En3rN::DX
 
 		
 		
-		auto& Pointlight2 = CreateEntity();
+		/*auto& Pointlight2 = CreateEntity();
 		tc = TransformComponent();
 		tc.Scale = { 0.1f,.1f,.1f };
 		tc.Position = { 10, 0, 20 };
@@ -72,7 +76,7 @@ namespace En3rN::DX
 		Pointlight2.AddComponent<PointLightComponent>();
 		Pointlight2.SetName("Lights");
 		mrc = ModelRendererComponent("primitive/sphere.obj", {}, { Teqnique::Unlit() });
-		Pointlight2.AddComponent<ModelRendererComponent>(std::move(mrc));
+		Pointlight2.AddComponent<ModelRendererComponent>(std::move(mrc));*/
 
 		auto& SpotLight = CreateEntity("SpotLight");
 		tc = TransformComponent();
@@ -84,18 +88,14 @@ namespace En3rN::DX
 		mrc = ModelRendererComponent("primitive/sphere.obj", {}, { Teqnique::Unlit() });
 		SpotLight.AddComponent<ModelRendererComponent>(std::move(mrc));
 
-		auto& cubeBrick = CreateEntity();
+		/*auto& cubeBrick = CreateEntity();
 		cubeBrick.SetName("BrickCube");
 		tc=TransformComponent();
 		tc.Position = { 0,0,10 };
 		cubeBrick.AddComponent<TransformComponent>(std::move(tc));
-		Teqnique Debug("Debug");
-		auto defaultsteps = Teqnique::Phong().GetSteps()[0];
+		defaultsteps.AddBindable(std::make_shared<PixelShader>(defaultsteps.GetPassName(), "debug"));
 		Debug.AddStep(std::move(defaultsteps));
-		auto& step = Debug.GetSteps()[0];
-		step.AddBindable(std::make_shared<PixelShader>(step.GetPassName(), "debug"));
 		mrc = ModelRendererComponent("primitive/cube.obj", {}, { Teqnique::Phong() , std::move(Debug) });
-		auto mrcCube = mrc;
 		cubeBrick.AddComponent<ModelRendererComponent>(std::move(mrc));
 
 
@@ -104,7 +104,6 @@ namespace En3rN::DX
 		tc = TransformComponent();
 		tc.Position = { 0,0,5 };
 		cube.AddComponent<TransformComponent>(std::move(tc));
-		Debug = { "Debug" };
 		defaultsteps = Teqnique::Phong().GetSteps()[0];
 		defaultsteps.AddBindable(std::make_shared<PixelShader>(defaultsteps.GetPassName(), "debug"));
 		Debug.AddStep(std::move(defaultsteps));
@@ -123,16 +122,29 @@ namespace En3rN::DX
 		mrc = ModelRendererComponent("primitive/sphere.obj", {}, { Teqnique::Phong() , std::move(Debug) });
 		sphere.AddComponent<ModelRendererComponent>(std::move(mrc));
 
-		auto& sponsa = CreateEntity("Gobber");
+		auto& gobber = CreateEntity("Gobber");
 		tc = TransformComponent();
 		tc.Scale = { .5f,.5f,.5f };
-		sponsa.AddComponent<TransformComponent>(std::move(tc));
+		gobber.AddComponent<TransformComponent>(std::move(tc));
 		Debug = { "Debug" };
 		defaultsteps = Teqnique::Phong().GetSteps()[0];
 		defaultsteps.AddBindable(std::make_shared<PixelShader>(defaultsteps.GetPassName(), "debug"));
 		Debug.AddStep(std::move(defaultsteps));
 		mrc = ModelRendererComponent("gobber/gobber.obj", {}, { Teqnique::Phong() , std::move(Debug) });
+		gobber.AddComponent<ModelRendererComponent>(std::move(mrc));*/
+
+		auto& sponsa = CreateEntity("Sponza");
+		tc = TransformComponent();
+		tc.Scale = { .01f,.01f,.01f };
+		sponsa.AddComponent<TransformComponent>(std::move(tc));
+		Debug = { "Debug" };
+		defaultsteps = Teqnique::Phong().GetSteps()[0];
+		defaultsteps.AddBindable(std::make_shared<PixelShader>(defaultsteps.GetPassName(), "debug"));
+		Debug.AddStep(std::move(defaultsteps));
+		mrc = ModelRendererComponent("sponza/sponza.obj", {}, { Teqnique::Phong() , std::move(Debug) });
 		sponsa.AddComponent<ModelRendererComponent>(std::move(mrc));
+
+		
 
 
 	}

@@ -26,7 +26,7 @@ namespace En3rN::DX
         mouse.Register();
         RenderTarget rtv(256, 256);
         DepthStencil dsv(256, 256);
-        rtv.Set(dsv);
+        rtv.Set(&dsv);
         LoadScene();
         while (ProcessMsg())
         {
