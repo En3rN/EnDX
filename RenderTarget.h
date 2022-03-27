@@ -2,6 +2,7 @@
 #include "GfxResources.h"
 #include "vec.h"
 #include "DepthStencil.h"
+#include "Resource.h"
 #include<vector>
 
 namespace En3rN::DX
@@ -10,9 +11,10 @@ namespace En3rN::DX
 	{
 	public:
 		RenderTarget(uint32_t width, uint32_t height);
+		RenderTarget(Resource& resource);
 		ID3D11RenderTargetView** Get() { return m_rtv.GetAddressOf(); }
 		ID3D11RenderTargetView** operator & () { return &m_rtv; }
-		bool Set(DepthStencil& depthStencil);
+		bool Set(DepthStencil* depthStencil);
 		bool Clear(Vec4f color = { 0,0,0,0 });
 		auto GetResource();
 

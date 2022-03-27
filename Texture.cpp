@@ -21,12 +21,12 @@ namespace En3rN::DX
 
 		DirectX::WIC_FLAGS wflags{};
 		wflags |= WIC_FLAGS::WIC_FLAGS_FILTER_FANT;
+		TEX_FILTER_FLAGS texFlags{};
+		texFlags |= TEX_FILTER_FANT | TEX_FILTER_SEPARATE_ALPHA;
 		DirectX::ScratchImage simg{};
 		DirectX::TexMetadata meta{};
 		meta.mipLevels = 0;
 		
-
-		//std::wstring p = path.make_preferred().wstring();
 		if (!std::filesystem::exists(path)) throw EnExcept("File not found!"+ path.string(), std::source_location::current());
 
 		errchk::hres(DirectX::LoadFromWICFile(path.wstring().c_str(), wflags, &meta, simg));
@@ -36,7 +36,7 @@ namespace En3rN::DX
 			DirectX::ScratchImage converted{};
 			DirectX::Convert(*simg.GetImages(),
 				DXGI_FORMAT_R8G8B8A8_UNORM,
-				TEX_FILTER_FANT,
+				texFlags,
 				DirectX::TEX_THRESHOLD_DEFAULT,
 				converted);
 			simg = std::move(converted);
@@ -61,7 +61,10 @@ namespace En3rN::DX
 		tdesc.CPUAccessFlags = 0;
 		tdesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
-		pDevice->CheckMultisampleQualityLevels(tdesc.Format, tdesc.SampleDesc.Count, &tdesc.SampleDesc.Quality);
+		errchk::hres(pDevice->CheckMultisampleQualityLevels(
+			tdesc.Format,
+			tdesc.SampleDesc.Count,
+			&tdesc.SampleDesc.Quality));
 
 		D3D11_SUBRESOURCE_DATA subres{};
 		subres.pSysMem = simg.GetImage(0, 0, 0);
@@ -79,7 +82,7 @@ namespace En3rN::DX
 			srvdesc.Texture2D.MostDetailedMip = 0;
 			srvdesc.Texture2D.MipLevels = -1;
 			ScratchImage mips;
-			GenerateMipMaps(*simg.GetImage(0, 0, 0), TEX_FILTER_FLAGS::TEX_FILTER_SEPARATE_ALPHA, (size_t)0, mips);
+			GenerateMipMaps(*simg.GetImage(0, 0, 0), texFlags, (size_t)0, mips);
 			simg = std::move(mips);
 			break;
 		}
@@ -113,7 +116,7 @@ namespace En3rN::DX
 				auto& srcImgIndex = srcImgIndecies[i];
 				rect.x = (srcImgIndex % 4) * rect.w;
 				rect.y = (srcImgIndex / 4) * rect.w;
-				DirectX::CopyRectangle(*simg.GetImages(), rect, *cube.GetImage(0, i, 0), TEX_FILTER_DEFAULT, 0, 0);
+				DirectX::CopyRectangle(*simg.GetImages(), rect, *cube.GetImage(0, i, 0), texFlags, 0, 0);
 				subres[i].SysMemPitch = sysMemPitch;
 				subres[i].pSysMem = cube.GetImage(0, i, 0);
 			}
@@ -124,10 +127,34 @@ namespace En3rN::DX
 		}
 		ComPtr<ID3D11Resource> pTexture;
 		errchk::hres(CreateTexture(pDevice, simg.GetImages(), simg.GetImageCount(), simg.GetMetadata(), &pTexture));
-		errchk::hres(CreateShaderResourceView(pDevice, simg.GetImages(), simg.GetImageCount(), simg.GetMetadata(), &pTextureView));		
-	}	
+		errchk::hres(CreateShaderResourceView(pDevice, simg.GetImages(), simg.GetImageCount(), simg.GetMetadata(), &m_srv));		
+	}
+	Texture::Texture(ComPtr<ID3D11Texture2D> tex, UINT slot, Type type) :
+		m_texture(tex), m_slot(slot)
+	{
+		D3D11_TEXTURE2D_DESC tDesc{};
+		tex->GetDesc(&tDesc);
+		
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+		srvDesc.Format = tDesc.Format;
+		if(tDesc.ArraySize > 1) {
+			if(tDesc.MipLevels > 1)
+				srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY;
+			else
+				srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+		}
+		else {
+			if(tDesc.MipLevels > 1)
+				srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
+			else
+				srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		}
+		errchk::hres(pDevice->CreateShaderResourceView(tex.Get(), &srvDesc, &m_srv));
+	}
+
 	void Texture::Bind()
 	{
-		pContext->PSSetShaderResources(m_slot, 1, pTextureView.GetAddressOf());
+		pContext->PSSetShaderResources(m_slot, 1, m_srv.GetAddressOf());
 	}
 }

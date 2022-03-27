@@ -29,12 +29,10 @@ namespace En3rN
 	}
 	void Event::Handler::Unregister(Event::Listener* listener)
 	{
-		for(auto it=listeners.begin();it<listeners.end();++it)
-			if (*it == listener) {
-				listeners.erase(it);
-				break;
-			}
-		//std::erase_if(listeners, [&]() {it == listeners; })
+		auto l = std::find(begin(listeners), end(listeners), listener);
+		if(l != std::end(listeners))
+			auto amount = std::erase(listeners, *l);
+		
 	}
 
 	void Event::Handler::ProcessEvents()

@@ -5,13 +5,13 @@ TextureCube cubeDiffuseMap : register(t3);
 SamplerState tMapSampler : register(s0);
 
 #include "Structs.hlsli"
+#define numLights 3
 
 cbuffer MaterialCB : register(b1)
 {
     Material material;
 }
 
-#define numLights 3
 
 cbuffer LightCB : register(b0)
 {
@@ -43,10 +43,10 @@ float3 NormalTangentToTargetSpace(float2 texCord, float3 tan, float3 bitan, floa
 
 LightParameters CalculateLightParameters(Lights light, float3 position)
 {
-    LightParameters result = (LightParameters) 0;
+    LightParameters result;
     if(light.isDirectional)
     {
-        result.dirToL = normalize(light.direction);
+        result.dirToL = normalize(-light.direction);
         result.color = light.color;
         return result;
     }
@@ -55,9 +55,9 @@ LightParameters CalculateLightParameters(Lights light, float3 position)
     result.dirToL = normalize(result.dirToL);
 
     float dotL = dot(light.direction, result.dirToL);
-    float conAtt = saturate((dotL - light.cone) * 1);
-    conAtt *= conAtt;
-    //float inLight = 1;
+    float conAtt = dotL > light.coneInner;
+    float isPointLight = light.coneOuter >= 1;
+    conAtt = max(conAtt, isPointLight);
     result.color = light.color.rgb * conAtt * Attenuate(light.attenuation.x, light.attenuation.y, light.attenuation.z,result.disToL);
     return result;
 }
@@ -103,18 +103,22 @@ float4 CombineRGBWithAlpha(float3 rgb, float a)
 
 Light CalculateLight(float3 position, float3 normal, float3 specularColor, float specularPower, float3 toEye)
 {
-    Light result = (Light) 0;
+    Light result;
+    float3x3 diffuse;
+    float3x3 specular;
+    LightParameters params[numLights];
+
     [unroll]
     for (int i = 0; i < numLights;i++)
     {
-        LightParameters param = CalculateLightParameters(lights[i], position);
+        params[i] = CalculateLightParameters(lights[i], position);
         //diffuse
-        result.diffuse += LambertLighting(param.dirToL, normal, param.color.rgb);
+        diffuse[i]  = LambertLighting(params[i].dirToL, normal, params[i].color.rgb);
         //specular
-        result.specular += SpecularContribution(toEye, param.dirToL, normal, specularColor, specularPower, material.specularIntensity, param.color.rgb);
+        specular[i] = SpecularContribution(toEye, params[i].dirToL, normal, specularColor, specularPower, material.specularIntensity, params[i].color.rgb) * diffuse[i];
     }
-    result.diffuse = saturate(result.diffuse);
-    result.specular = saturate(result.specular);
+    result.diffuse = max(max(diffuse[0], diffuse[1]), diffuse[2]);
+    result.specular = max(max(specular[0], specular[1]), specular[2]);
     return result;
 }
 
@@ -125,9 +129,9 @@ float4 Diffuse(PSIn psin) : SV_Target
 #ifdef ALPHATEST
     clip(sampleDiffuse.w < 0.01f ? -1:1);
 #endif
-    float3 materialColor = saturate(sampleDiffuse.rgb * material.diffuse.rgb);
+    float3 materialColor = saturate(sampleDiffuse.rgb);
     float3 specularColor = material.specular;
-    float specularPower = material.specularPower;
+    float specularPower = pow(2.0f, material.specularPower * 13.0f);
     
     float3 normal = normalize(psin.normal);
     float3 toEye = normalize(psin.toEye);
@@ -149,9 +153,9 @@ float4 DiffuseSpecular(PSIn psin) : SV_Target
 #ifdef ALPHATEST
     clip(sampleDiffuse.w < 0.01f ? -1:1);
 #endif
-    float3 materialColor = saturate(sampleDiffuse.rgb * material.diffuse.rgb);
+    float3 materialColor = saturate(sampleDiffuse.rgb);
     float3 specularColor =sampleSpecular.rgb;
-    float specularPower = pow(2.0f, sampleSpecular.a * 13.0f);
+    float specularPower = pow(2.0f, sampleSpecular.a * 13.0f);    
     
     float3 normal = normalize(psin.normal);
     float3 toEye = normalize(psin.toEye);
@@ -172,7 +176,7 @@ float4 DiffuseSpecularNormal(PSIn psin) : SV_Target
 #ifdef ALPHATEST
     clip(sampleDiffuse.w < 0.01f ? -1:1);
 #endif
-    float3 materialColor = saturate(sampleDiffuse.rgb * material.diffuse.rgb);
+    float3 materialColor = saturate(sampleDiffuse.rgb);
     float3 specularColor = sampleSpecular.rgb;
     
     float specularPower = pow(2.0f, sampleSpecular.a * 13.0f);
@@ -191,9 +195,9 @@ float4 DiffuseNormal(PSIn psin) : SV_Target
 #ifdef ALPHATEST
     clip(sampleDiffuse.w < 0.01f ? -1:1);
 #endif
-    float3 materialColor = saturate(sampleDiffuse.rgb * material.diffuse.rgb);
+    float3 materialColor = saturate(sampleDiffuse.rgb);
     float3 specularColor = material.specular;
-    float specularPower = material.specularPower;
+    float specularPower = pow(2.0f, material.specularPower * 13.0f);
 
     float3 normal = NormalTangentToTargetSpace(psin.texcord.xy, psin.tangent, psin.bitangent, psin.normal);
     float3 toEye = normalize(psin.toEye);    

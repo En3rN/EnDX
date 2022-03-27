@@ -344,6 +344,9 @@
     <ClInclude Include="DepthStencil.h">
       <Filter>Graphics\Engine\DepthStencil</Filter>
     </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="EnDX.cpp">
@@ -498,6 +501,9 @@
     </ClCompile>
     <ClCompile Include="DepthStencil.cpp">
       <Filter>Graphics\Engine\DepthStencil</Filter>
+    </ClCompile>
+    <ClCompile Include="Resource.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
