@@ -132,6 +132,21 @@
     <Filter Include="Graphics\Engine\DepthStencil">
       <UniqueIdentifier>{9030b6d0-a6d6-471e-8ec8-6f913cb0ef2b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Graphics\Engine\Device">
+      <UniqueIdentifier>{d9a4843d-e354-43a0-9bf1-2a9624c2779d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Engine\Context">
+      <UniqueIdentifier>{e5501f23-a720-48b6-b264-97978b4292fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Engine\Resources">
+      <UniqueIdentifier>{2ea14efa-d001-420b-b733-fadffb705e8b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common\Container">
+      <UniqueIdentifier>{768985c2-9ce6-43a8-9b02-3058e77b42f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Scene\Entity\Drawable\Bindable\ScopedBinder">
+      <UniqueIdentifier>{2283b4f6-4c33-4390-a575-e8d36a209b69}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Shader.h">
@@ -344,7 +359,37 @@
     <ClInclude Include="DepthStencil.h">
       <Filter>Graphics\Engine\DepthStencil</Filter>
     </ClInclude>
+    <ClInclude Include="Render.h">
+      <Filter>Graphics\Engine\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Device.h">
+      <Filter>Graphics\Engine\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="Context.h">
+      <Filter>Graphics\Engine\Context</Filter>
+    </ClInclude>
+    <ClInclude Include="Tex2D.h">
+      <Filter>Graphics\Engine\Resources</Filter>
+    </ClInclude>
     <ClInclude Include="Resource.h">
+      <Filter>Graphics\Engine\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Container.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ViewPort.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TransformConstantBufferScaling.h">
+      <Filter>Graphics\Scene\Entity\Drawable\Bindable\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="FullscreenPass.h">
+      <Filter>Graphics\Engine\Renderer\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="OutlineBlurPass.h">
+      <Filter>Graphics\Engine\Renderer\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="ScopedBinder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -502,7 +547,34 @@
     <ClCompile Include="DepthStencil.cpp">
       <Filter>Graphics\Engine\DepthStencil</Filter>
     </ClCompile>
+    <ClCompile Include="Device.cpp">
+      <Filter>Graphics\Engine\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="Context.cpp">
+      <Filter>Graphics\Engine\Context</Filter>
+    </ClCompile>
     <ClCompile Include="Resource.cpp">
+      <Filter>Graphics\Engine\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="Tex2D.cpp">
+      <Filter>Graphics\Engine\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="Container.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ViewPort.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FullscreenPass.cpp">
+      <Filter>Graphics\Engine\Renderer\Pass</Filter>
+    </ClCompile>
+    <ClCompile Include="OutlineBlurPass.cpp">
+      <Filter>Graphics\Engine\Renderer\Pass</Filter>
+    </ClCompile>
+    <ClCompile Include="ScopedBinder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TransformConstantBufferScaling.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -537,6 +609,14 @@
     <FxCompile Include="Test.hlsl">
       <Filter>Graphics\Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="VSFullScreen.hlsl">
+      <Filter>Graphics\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="CSBlurAlpha.hlsl">
+      <Filter>Graphics\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="VerticalBlurCS.hlsl" />
+    <FxCompile Include="HorizontalBlurCS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

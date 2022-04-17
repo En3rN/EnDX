@@ -19,6 +19,7 @@ namespace En3rN::DX
 		enBuffer() = default;
 		using Data = std::vector<uint8_t>;
 		using Indecies = std::vector<uint16_t>;
+		using Semantics = std::vector<std::string>;
 		class Element
 		{
 		public:
@@ -26,7 +27,6 @@ namespace En3rN::DX
 
 			friend class enBuffer;
 			Element() = default;
-			//Element(Data&& data,);
 			Element(const Element& other) = default;
 			Element(Element&& other) noexcept= default;
 			Element& operator = (const Element& other) = default;
@@ -40,12 +40,19 @@ namespace En3rN::DX
 			const size_t			hash()		const	{ return m_hash; }
 			const uint8_t*			data()		const	{ return m_data.data(); }
 			uint8_t*				data()				{ return m_data.data(); }
+			template <typename T>
+			T& operator [](size_t index) {
+				/*static_assert(typeid(T).hash_code() == m_hash);
+				assert(index * stride() < size());
+				auto r = static_cast<T*> (data() + index * stride);
+				return *r;*/
+			}
 			
 		protected:
 			std::string		m_semantic;
-			size_t			m_stride;	//size of stride
-			size_t			m_count;	//stridecount
-			size_t			m_hash;		//typeid.hash
+			size_t			m_stride{};	//size of stride
+			size_t			m_count{};	//stridecount
+			size_t			m_hash{};		//typeid.hash
 			enBuffer::Data	m_data;		//data
 		};
 		template<typename T, std::enable_if_t<std::is_standard_layout_v<T>, bool> = true>
@@ -64,15 +71,18 @@ namespace En3rN::DX
 					stride = sizeof(T);
 			}
 
-			m_elements.emplace_back(Element());
-			auto& e = m_elements.back();
+			auto& e = m_elements.emplace_back(Element());
 			e.m_semantic = semantic;
 			e.m_stride = stride;
 			e.m_count = count;
 			e.m_hash = typeid(T).hash_code();
 			e.m_data.resize(e.size());
 			for (auto i = 0; i < count; ++i)
-				memcpy(&e.m_data[i * stride], &data[i], stride);
+				if (count>1) 
+					memcpy(&e.m_data[i * stride], &data[i], stride);
+				else
+					memcpy( &e.m_data[ i * stride ], &data, stride );
+				
 	
 		}
 		void	add_element (const Element* e , size_t count)
@@ -89,26 +99,24 @@ namespace En3rN::DX
 			m_elements.push_back(element);
 		}
 		template <typename T>
-		void	push_back(const T& data) // locks layout -- data size must match element_size
+		void	push_back(const T& data) // data size must match element_size
 		{
-			m_locked = true;
-			size_t offset = m_buffer.size();
-			m_buffer.resize(offset + sizeof(data));
-			memcpy(&m_buffer[offset], &data, sizeof(data));
+			m_buffer.resize(m_buffer.size() + sizeof(data));
+			memcpy(std::end(m_buffer), &data, sizeof(data));
 		}
-		void				create_buffer(); // creates buffer from elements -- locks the layout
-		void				create_buffer(std::vector<std::string>& semantics); // creates buffer from requested elements -- locks the layout
+		void				create_buffer(); // creates buffer from elements 
+		void				create_buffer(const Semantics& semantics); // creates buffer from requested elements 
 		size_t				size(); // size of stored data
 		size_t				count(); //number of stored manual structs
 		size_t				element_count(); //number of elements in layout
 		size_t				layout_size(); //size of layout in bytes
 		uint8_t*			data();
-		Indecies			indecies(uint32_t verteciesPerFace); //
+		Element& operator [] (const std::string& semantic);
+		
 		
 	protected:
 		Data				m_buffer;
 		Element::Container	m_elements;
-		bool				m_locked = false;
 	};
 	class VertexElement // elements set up for vertexbuffer
 	{

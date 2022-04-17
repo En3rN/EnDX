@@ -1,27 +1,44 @@
 #pragma once
 
-#include "Pass.h"
 #include "iBindable.h"
+#include "BindableManager.h"
 #include "Shader.h"
+#include "Sampler.h"
+#include "Rasterizer.h"
+#include "Blend.h"
+#include "Stencil.h"
+#include "Transform.h"
 #include <vector>
 
 
 namespace En3rN::DX
-{	
+{
+	//Step is a class that hooks up with a RenderPass to later add jobs to that pass,
+	//There may be several steps in a Teqnicque
 	class Step
 	{
 	public:
 		using Container = std::vector<Step>;
-		template <typename ... Bindables>
-		Step(Pass::Name renderPass, Bindables ... bindables) : m_renderPass(renderPass)
+
+		struct RenderPassAndInput
 		{
+			std::string renderPassLookUpName{};
+			//lookup name for making texture from a renderTarget
+			std::string inputLookUpName{};
+		};
+		//renderpasses to target, custom bindables to replace with the defaults
+		template <typename ... Bindables>
+		Step(RenderPassAndInput outputAndInput, Bindables ... bindables) :
+			m_io(std::move(outputAndInput))
+		{			
 			AddBindables((bindables)...);
 		}
-		Step(Pass::Name renderPass): m_renderPass(renderPass){}
+		//renderpass to target, default bindable pool
+		Step(RenderPassAndInput outputAndInput): m_io(std::move(outputAndInput)) {}
+		Step(const Step& other) = default;
 		Step(Step&& other) noexcept = default;
-		Step(const Step & other) = default;
-		Step& operator = (Step && other) noexcept = default;
-		Step& operator = (const Step & other) = default;
+		Step& operator = (const Step& other) = default;
+		Step& operator = (Step&& other) noexcept = default;
 		~Step() = default;
 
 		// Adds bindable to container, if passed by derived bindable type it tries to replace
@@ -38,9 +55,9 @@ namespace En3rN::DX
 				}
 			}
 			if(std::dynamic_pointer_cast<Shader>(bindable))
-				m_bindables.insert(m_bindables.begin(), std::move(bindable));
+				m_bindables.insert(m_bindables.begin(), bindable);
 			else
-				m_bindables.push_back(std::move(bindable));
+				m_bindables.push_back(bindable);
 			return;
 		}
 		template <typename T>
@@ -52,23 +69,31 @@ namespace En3rN::DX
 			return false;
 		}
 		template <typename T>
-		T* GetBindable()
+		auto GetBindable()
 		{
 			std::shared_ptr<T> result;
 			for(auto& bindable : m_bindables) {
 				result = std::dynamic_pointer_cast<T>(bindable);
 				if(result)
-					return result.get();
+					return result;
 			}
-			return nullptr;
+			return result;
 		}
-		
-		const Bindable::Base::Container&	GetBindables() const { return m_bindables; }
-		const Pass::Name					GetRenderPassSlot() const { return m_renderPass; }
-		const std::string					GetPassName() const
+		template <typename ... Bindables>
+		void AddBindables(Bindable::Base::handle bindable, Bindables ... rest)
+		{
+			AddBindable(bindable);
+			if constexpr(sizeof...(rest) > 0)
+				AddBindables((rest)...);
+		}
+		const Bindable::Base::Container& GetBindables() const { return m_bindables; }
+		Bindable::Base::Container& GetBindables()  { return m_bindables; }
+
+		//const Pass::Name					GetRenderPassSlot() const { return m_renderPass; }
+		const std::string& GetPassName() const
 		{
 			using namespace std::string_literals;
-			switch(m_renderPass)
+			/*switch(m_renderPass)
 			{
 			case En3rN::DX::Pass::Name::Setup:
 				return "null"s;
@@ -86,18 +111,21 @@ namespace En3rN::DX
 				return "Skybox"s;
 			default:
 				break;
-			}
+			}*/
+			return m_io.renderPassLookUpName;
 		}
-	
-		template <typename ... Bindables>
-		void AddBindables(Bindable::Base::handle bindable, Bindables ... rest)
+		const std::string& GetInputName() const
 		{
-			AddBindable(bindable);
-			if constexpr (sizeof...(rest)>0)
-				AddBindables((rest)...);
+			return m_io.inputLookUpName;
 		}
-		Pass::Name					m_renderPass;
-		Bindable::Base::Container	m_bindables;
-	};
 
+	private:	
+		RenderPassAndInput			m_io{};
+		Bindable::Base::Container	m_bindables{
+			BindableManager::Query<Sampler>(Sampler::State::Wrap),
+			BindableManager::Query<Rasterizer>(Rasterizer::State::Back),
+			BindableManager::Query<Blender>(Blender::State::Default),
+			BindableManager::Query<DepthStencilState>(DepthStencilState::Depth::Enable),
+		};
+	};
 }

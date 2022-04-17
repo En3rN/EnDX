@@ -14,13 +14,13 @@ namespace En3rN
 		class Handler;
 		using Que = std::queue<Event>;
 		enum class Category { Application, Window, Keyboard, Mouse };
-		enum class Type {KeyDown, KeyUp, Move, WheelUp, WheelDown, RawCapture, FullScreen};
+		enum class Flag {KeyDown, KeyUp, Move, WheelUp, WheelDown, RawCapture, FullScreen};
 		enum class Status {NotHandled, Dispatched, Handled};
-		Event(Category	category, Type type,  WPARAM wparam, LPARAM lparam);
-		static Event::handle Create(Event::Category	category, Event::Type type, WPARAM wparam, LPARAM lparam);
+		Event(Category	category, Flag type,  WPARAM wparam, LPARAM lparam);
+		static Event::handle Create(Event::Category	category, Event::Flag type, WPARAM wparam, LPARAM lparam);
 
 		Category	category;
-		Type		type;
+		Flag		type;
 		Status		status;
 		WPARAM		wparam;
 		LPARAM		lparam;

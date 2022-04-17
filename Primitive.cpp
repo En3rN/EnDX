@@ -114,7 +114,7 @@ namespace En3rN::DX
 		model->GetRootNode()->AddMeshIndex(0);
 		
 		model->ApplyTransform(pos,Vec3f(0,0,0),Vec3f(1,1,1));
-		model->AddTeqnique(Teqnique::Phong());
+		//model->AddTeqnique(Teqnique("Phong"));
 		return std::move(model);
 	}
 

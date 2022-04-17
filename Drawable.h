@@ -33,6 +33,6 @@ namespace En3rN::DX
 		//operator Entity& () { return static_cast<Entity&>(*this); }
 	protected:
 		std::vector<Bindable::Base::handle> bindables;
-		UINT indexCount;
+		UINT indexCount{};
 	};
 }

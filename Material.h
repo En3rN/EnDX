@@ -21,17 +21,17 @@ namespace En3rN::DX
 		// vec4f diff, vec3f specColor, float sIntenity, vec3f specPow
 		struct Data
 		{
-			Vec4f				diffuse;
-			Vec3f				specular;
-			float				specularPower;
-			Vec3f				emissive;
-			float				specularIntensity;
+			Vec4f				diffuse{};
+			Vec3f				specular{};
+			float				specularPower{};
+			Vec3f				emissive{};
+			float				specularIntensity{};
 		};
 		
 		using ConstantBuffer = PSConstantBuffer<Data>;
 
 		Material() = default;
-		Material(const aiMaterial* aimaterial, std::filesystem::path modelPath="");
+		Material(aiMaterial* aimaterial, std::filesystem::path modelPath="");
 		Material(Material::Data && data);
 		Material(const Material & other) = default;
 		Material(Material && other) = default;
@@ -41,6 +41,7 @@ namespace En3rN::DX
 
 		ConstantBuffer& GetMaterialConstantBuffer() { return *m_constantBuffer.get(); }
 		const Data& GetData() const { return m_data; }
+		const std::string GetName() const { return m_name; }
 
 		auto Size() const {return UINT{ sizeof Data };};
 
@@ -65,6 +66,7 @@ namespace En3rN::DX
 		bool UIControls();
 		
 	private:
+		std::string						m_name;
 		Data							m_data;
 		std::bitset<3>					m_hasMap;
 		Texture::Container				m_textures;

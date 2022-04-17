@@ -1,5 +1,4 @@
 #pragma once
-
 #include "Buffer.h"
 #include "enMath.h"
 #include "vec.h"

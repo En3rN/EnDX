@@ -9,8 +9,9 @@
 
 namespace En3rN::DX
 {
-	Material::Material(const aiMaterial* aimaterial, std::filesystem::path modelPath): m_data{},
+	Material::Material(aiMaterial* aimaterial, std::filesystem::path modelPath): m_data{},
 		m_constantBuffer(std::make_shared<ConstantBuffer>(1, 1)),
+		m_name(aimaterial->GetName().C_Str()),
 		m_updateConstantBuffer(true)
 	{
 		using std::filesystem::path;

@@ -31,7 +31,7 @@ namespace En3rN::DX
         }
     }
 
-    void enBuffer::create_buffer(std::vector<std::string>& semantics)
+    void enBuffer::create_buffer(const Semantics& semantics)
     {
         auto stride = layout_size();
         auto count = m_elements[0].count();
@@ -79,7 +79,7 @@ namespace En3rN::DX
 
     size_t enBuffer::layout_size()
     {
-        size_t size(0);
+        size_t size{};
         for (auto& e : m_elements)
             size += e.stride();
         return size;
@@ -90,29 +90,44 @@ namespace En3rN::DX
             create_buffer();
          return m_buffer.data();
     }
-    enBuffer::Indecies enBuffer::indecies(uint32_t numFaces)
+    enBuffer::Element& enBuffer::operator[](const std::string& semantic)
     {
-        Indecies indecies{};
-        auto verteciesPerFace = count() / numFaces;
-        uint64_t triangles = 1u;
-        while ((verteciesPerFace % (triangles*3) != 0) && ( verteciesPerFace % (triangles * 3)!=4))
-            ++triangles;
-        uint64_t indeciesPerFace = triangles * 3;
-        uint32_t index = 0u;
-        for (auto face = 0u; face < numFaces; ++face)
-        {
-            uint32_t facefirst = face * verteciesPerFace;
-            uint32_t facelast = facefirst + verteciesPerFace - 1; // -1 korrigere for at vi starter på 0
-            for (auto triangle = 0u; triangle < triangles; ++triangle)
-            {
-                auto last = index + 3;
-                for (index; index < last; ++index)
-                {
-                    indecies.push_back(Wrap(index,facefirst,facelast));
-                }
-                verteciesPerFace < indeciesPerFace ? --index : index;
+        auto it = std::find_if(begin(m_elements), end(m_elements), [&](const auto& element) {
+            return element.semantic() == semantic;
             }
-        }
-        return indecies;
+        );
+        assert(it != std::end(m_elements));
+
+        return *it;
     }
+    /*uint8_t* enBuffer::Element::operator[](size_t index)
+    {
+        assert(index*m_stride < size());
+        return data() + index * m_stride;
+    }*/
+    //enBuffer::Indecies enBuffer::indecies(uint32_t numFaces)
+    //{
+    //    Indecies indecies{};
+    //    auto verteciesPerFace = count() / numFaces;
+    //    uint64_t triangles = 1u;
+    //    while ((verteciesPerFace % (triangles*3) != 0) && ( verteciesPerFace % (triangles * 3)!=4))
+    //        ++triangles;
+    //    uint64_t indeciesPerFace = triangles * 3;
+    //    uint32_t index = 0u;
+    //    for (auto face = 0u; face < numFaces; ++face)
+    //    {
+    //        uint32_t facefirst = face * verteciesPerFace;
+    //        uint32_t facelast = facefirst + verteciesPerFace - 1; // -1 korrigere for at vi starter på 0
+    //        for (auto triangle = 0u; triangle < triangles; ++triangle)
+    //        {
+    //            auto last = index + 3;
+    //            for (index; index < last; ++index)
+    //            {
+    //                indecies.push_back(Wrap(index,facefirst,facelast));
+    //            }
+    //            verteciesPerFace < indeciesPerFace ? --index : index;
+    //        }
+    //    }
+    //    return indecies;
+    //}
 }

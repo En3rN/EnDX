@@ -4,7 +4,6 @@
 #include "Camera.h"
 #include "Renderer.h"
 #include "UIControlsI.h"
-//#include "Component.h"
 #include <vector>
 
 namespace En3rN::DX
@@ -24,6 +23,9 @@ namespace En3rN::DX
 		void OnSceneChange();
 		void AddEntity(Entity&& entity);
 		Entity& CreateEntity(std::string&& tag = "EmptyEntity"); //constructs and stores an entity, returns &
+		Entity& GetEntity(entt::entity entt);
+		Mesh::Index FindMesh(const std::string & name);
+		Material::Index FindMaterial(const std::string & name);
 		void AddCamera(Camera camera);
 		void LoadModel(Entity& entity);
 		void AddModel(Model::handle model);
@@ -93,9 +95,9 @@ namespace En3rN::DX
 		{
 			auto change = false;
 			static std::string outPut;
-			for(auto i : mrc.Meshes) {
-				auto& mesh = m_meshes[i];
-				auto& material = m_materials[mesh.GetMaterialIndex()];
+			for(auto& meshIndex : mrc.MeshIndecies) {
+				auto& mesh = Meshes[meshIndex];
+				auto& material = Materials[mesh.GetMaterialIndex()];
 				outPut = "Mesh: " + mesh.GetName() + ":";
 				ImGui::Text(outPut.c_str());
 				ImGui::Text("Materials:");
@@ -103,7 +105,7 @@ namespace En3rN::DX
 				{
 					for(auto& teq : mesh.Teqniques())
 						for(auto& step : teq.GetSteps())
-							if(step.GetRenderPassSlot() == Pass::Name::Phong) {
+							if(step.GetPassName() == "Phong") {
 								auto ps = BindableManager::Query<PixelShader>(
 									step.GetPassName(), 
 									material.GetShaderEntryPoint());
@@ -123,24 +125,23 @@ namespace En3rN::DX
 		}
 		auto UIControls(TransformComponent& tc)
 		{
-			static bool change = false;
+			bool change = false;
 			change += ImGui::DragFloat3("Position", tc.Position,.1f);
 			change += ImGui::DragFloat3("Angles", tc.Angles, .1f);
 			change += ImGui::DragFloat3("Scale", tc.Scale, .1f);
 			return change;
 		}
 
+		static Mesh::Container Meshes;
+		static Material::Container Materials;
+
 	private:
-		Entity CreateEntities(aiNode* node, Vec3f scale);
 		entt::registry m_registry;
-		Entity::Container m_entities;
-		Mesh::Container m_meshes;
-		Material::Container m_materials;
+		Entity::Container m_entities;		
 		Node::handle m_rootNode = std::make_unique<Node>("MyScene");
 		Camera::Container cameras;
 		//Light lights;
 		Model::Container models;
-		
 		Renderer* m_renderer;
 	};
 }

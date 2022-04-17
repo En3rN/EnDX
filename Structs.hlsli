@@ -24,7 +24,7 @@ struct Lights
 struct LightParameters
 {
     float3 dirToL;
-    float3 disToL;
+    float  disToL;
     float3 color;
 };
 

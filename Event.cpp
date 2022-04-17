@@ -2,7 +2,7 @@
 #include "EnDX.h"
 namespace En3rN
 {
-	Event::handle Event::Create(Event::Category category, Event::Type type, WPARAM wparam, LPARAM lparam)
+	Event::handle Event::Create(Event::Category category, Event::Flag type, WPARAM wparam, LPARAM lparam)
 	{
 		return std::make_shared<Event>(category, type, wparam, lparam);
 	}
@@ -46,7 +46,7 @@ namespace En3rN
 		}
 	}
 
-	En3rN::Event::Event(Category category,Event::Type type, WPARAM wparam, LPARAM lparam) :
+	En3rN::Event::Event(Category category,Event::Flag type, WPARAM wparam, LPARAM lparam) :
 		category(category), type(type), status(Event::Status::NotHandled), wparam(wparam), lparam(lparam)
 	{
 		

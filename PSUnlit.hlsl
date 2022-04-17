@@ -12,7 +12,7 @@ cbuffer Material : register(b1)
 }
 
 float4 main(PSIn psin) : SV_Target
-{
+{   
     return material.diffuse;
 }
 

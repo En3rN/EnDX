@@ -8,6 +8,7 @@
 #include "imgui/imgui_impl_dx11.h"
 #include "imgui/imgui_impl_win32.h"
 #include "Cube.h"
+#include "RenderTarget.h"
 #include <array>
 #include <d3dcompiler.h>
 #include <vector>
@@ -27,21 +28,37 @@ namespace En3rN::DX
 {	
 	
 	Graphics::Graphics(HWND hWind, uint16_t width, uint16_t height, bool fullscreen): 
-		fullscreen(fullscreen), m_renderer(
-			Pass(Pass::Name::Setup),
-			Pass(Pass::Name::Phong),
-			Pass(Pass::Name::Unlit),
-			Pass(Pass::Name::WriteMask),
-			Pass(Pass::Name::ReadMask),
-			Pass(Pass::Name::Fullscreen),
-			Pass(Pass::Name::Skybox))
+		fullscreen(fullscreen)/*, m_renderer(
+			RenderPass("Setup"),
+			RenderPass(RenderPass::Name::Phong),
+			RenderPass(RenderPass::Name::Unlit),
+			RenderPass(RenderPass::Name::WriteMask),
+			RenderPass(RenderPass::Name::ReadMask),
+			RenderPass(RenderPass::Name::Fullscreen),
+			RenderPass(RenderPass::Name::Skybox))*/
 	{
-		errchk::hres(CreateDXGIFactory1(IID_IDXGIFactory2, &pIDXGIFactory));
+		errchk::hres(CreateDXGIFactory1(IID_IDXGIFactory2, &pDXGIFactory));
 		int i = 0;
-		IDXGIAdapter* adapter = nullptr;
-		std::vector<IDXGIAdapter*> adapters{};
+		std::vector<ComPtr<IDXGIAdapter>> adapters{};
 
-		errchk::hres(pIDXGIFactory->EnumAdapters(i, &pAdapter));
+		for(auto i =0; pDXGIFactory->EnumAdapters(i, &pAdapter) != DXGI_ERROR_NOT_FOUND; ++i)
+		{
+			adapters.push_back(pAdapter);
+			DXGI_ADAPTER_DESC desc{};
+			pAdapter->GetDesc(&desc);
+			std::wstringstream ss{};
+			ss << desc.Description << '\t' << desc.DedicatedVideoMemory << '\t' << desc.DeviceId << '\n\r';
+			OutputDebugStringW(ss.str().c_str());
+		}
+		std::sort(begin(adapters), end(adapters), [](const ComPtr<IDXGIAdapter>& lhs, const ComPtr<IDXGIAdapter>& rhs)
+			{
+				DXGI_ADAPTER_DESC desc[2]{};
+				lhs->GetDesc(&desc[0]);
+				rhs->GetDesc(&desc[1]);
+				return desc[0].DedicatedVideoMemory > desc[1].DedicatedVideoMemory;
+			}
+		);
+		pAdapter = adapters.at(0);
 		
 		DXGI_ADAPTER_DESC ades{};
 		errchk::hres(pAdapter->GetDesc(&ades));
@@ -54,7 +71,7 @@ namespace En3rN::DX
 			D3D_FEATURE_LEVEL_11_1,
 			D3D_FEATURE_LEVEL_11_0
 		};
-		D3D_FEATURE_LEVEL aFeatLvl[1]{};
+		D3D_FEATURE_LEVEL resultFeatLvl{};
 		DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
 		swapChainDesc.BufferDesc.Width = 0;
 		swapChainDesc.BufferDesc.Height = 0;
@@ -83,10 +100,17 @@ namespace En3rN::DX
 			&swapChainDesc,
 			&pSwapChain,
 			&pDevice,
-			aFeatLvl,
+			&resultFeatLvl,
 			&pContext));
-		
-		m_renderer.Init(pContext.Get());
+		/*ComPtr<ID3D11Resource> backbuffer;
+		pSwapChain->GetBuffer(0, IID_ID3D11Resource, &backbuffer);
+		Resource res(backbuffer);
+		RenderTarget rt(res);
+		RenderPass renderpass("Phong", rt);
+		m_renderer.AddPass(renderpass);*/
+
+		//må få laget pass !!!! får ikke laget her;
+
 		infoManager = std::make_unique<InfoManager>(*pDevice.Get());
 
 		CreateBuffers(width, height);
@@ -123,7 +147,7 @@ namespace En3rN::DX
 	void Graphics::ClearState()
 	{
 		pContext->ClearState();
-		pContext->Flush();
+		//pContext->Flush();
 	}
 
 	void Graphics::SetPresent(bool present)
@@ -132,7 +156,7 @@ namespace En3rN::DX
 	}
 
 	void Graphics::SetFullscreen(){
-		(fullscreen) ? fullscreen=false: fullscreen=true;
+		(fullscreen) ? fullscreen=false: fullscreen=true;		
 		pSwapChain->SetFullscreenState(fullscreen, nullptr);
 	}
 	void Graphics::OnResize(int width, int height){
@@ -162,6 +186,8 @@ namespace En3rN::DX
 		// RenderTarget View
 		ComPtr<ID3D11Texture2D> pBackBuffer;
 		errchk::hres(pSwapChain->GetBuffer(0, IID_ID3D11Texture2D, &pBackBuffer));
+		D3D11_TEXTURE2D_DESC texDesc{};
+		pBackBuffer->GetDesc(&texDesc);
 		errchk::hres(pDevice->CreateRenderTargetView(pBackBuffer.Get(), NULL, &pRenderTargetView));
 		// DepthStencil View
 		D3D11_DEPTH_STENCIL_VIEW_DESC dsVDesc{};
@@ -186,19 +212,16 @@ namespace En3rN::DX
 		errchk::hres(pDevice->CreateDepthStencilView(pDepthBuf.Get(), &dsVDesc, pDepthStencilView.GetAddressOf()));
 		viewport[0].TopLeftX = 0;
 		viewport[0].TopLeftY = 0;
-		viewport[0].Width = depthTexDesc.Width;
-		viewport[0].Height = depthTexDesc.Height;
+		viewport[0].Width = backBufferDesc.Width;
+		viewport[0].Height = backBufferDesc.Height;
 		viewport[0].MaxDepth = 1;
 		viewport[0].MinDepth = 0;
 
 
-		D3D11_RECT scissorRect{};
-		scissorRect.left = 0;
-		scissorRect.right = width;
-		scissorRect.top = 0;
-		scissorRect.bottom = height;
+		D3D11_RECT scissorRect[8]{};
+		
 
-		//pContext->RSSetScissorRects(1, &scissorRect);
+		//pContext->RSSetScissorRects(8, scissorRect);
 		pContext->OMSetRenderTargets(1, pRenderTargetView.GetAddressOf(), pDepthStencilView.Get());
 		pContext->RSSetViewports(8, viewport);
 	}
@@ -223,9 +246,17 @@ namespace En3rN::DX
 			float b;
 			float a;
 		};
-		Color color = { 0.5 , 0.5, 0.5 ,0.5 };
+		Color color = {mod ,mod, 1 ,1};
 		pContext->ClearDepthStencilView(pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 		pContext->ClearRenderTargetView(pRenderTargetView.Get(), &color.r);
+	}
+
+	Resource Graphics::GetBackBuffer()
+	{
+		
+		ComPtr<ID3D11Resource> resource;
+		pSwapChain->GetBuffer(0,IID_ID3D11Resource,&resource);
+		return Resource(resource);
 	}
 	
 	void Graphics::EndFrame(){

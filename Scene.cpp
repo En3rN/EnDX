@@ -5,11 +5,17 @@
 #include "logger.h"
 #include "enMath.h"
 #include "Teqnique.h"
+#include "Transform.h"
 #include "Sampler.h"
 #include "Rasterizer.h"
 #include "Blend.h"
 #include "Stencil.h"
+#include "enexception.h"
+#include "Component.h"
+#include "TransformConstantBufferScaling.h"
+
 #include <filesystem>
+#include <memory>
 
 #include <assimp\Importer.hpp>
 #include <assimp\scene.h>
@@ -18,6 +24,8 @@
 
 namespace En3rN::DX
 {
+	Mesh::Container Scene::Meshes{};
+	Material::Container Scene::Materials{};
 
 	En3rN::DX::Scene::Scene(Renderer* renderer) :
 		m_renderer(renderer)
@@ -49,34 +57,67 @@ namespace En3rN::DX
 	// create entities here
 	void En3rN::DX::Scene::OnCreate()
 	{
-		Teqnique Debug("Debug");
-		auto defaultsteps = Teqnique::Phong().GetSteps()[0];
+		Material::Data mData;
+		mData.diffuse = { 1,0,0,1 };
 
+		Teqnique Phong("Phong", true, Step({ "Phong" }));
+		Teqnique Unlit("Unlit", true, Step({ "Unlit" }));
+		Teqnique Debug("Debug", true, Step({ "Unlit" }, std::make_shared<PixelShader>("Phong", "debug")));
+		Teqnique Outline("Outline", true,
+			Step({ "MaskBackBuffer" },
+				BindableManager::Query<NullPixelShader>(),
+				BindableManager::Query<DepthStencilState>(DepthStencilState::Depth::Disable, DepthStencilState::Stencil::Write, 1)
+			),
+			Step({ "DrawOutline" , "Outline" },
+				BindableManager::Query<PixelShader>("Unlit", "main"),
+				std::make_shared<Material::ConstantBuffer>(mData, 1, 1, "outlineMat"),
+				std::make_shared<TransformConstantBufferScaling>(1.05f)				
+			),
+			Step({ "FullScreen","DrawOutline" },
+				BindableManager::Query<NullPixelShader>(),	//HACK --> To avoid mesh.Addbindable to insert shader based on pass and material
+				BindableManager::Query<DepthStencilState>(DepthStencilState::Depth::Disable, DepthStencilState::Stencil::Read, 1),
+				BindableManager::Query<Blender>(Blender::State::Enabled)
+			));
+		Outline.Context([](auto& context) {
+			Vec3f color{ 1,0,0 };
+			context.add_element(color, "Color");			
+			});
+
+		auto test = Teqnique::Teqniques.find( "Outline" );
+		auto func = Teqnique::Teqniques[ "Outline" ];
+		auto teq = func();
+		
+				
 
 		auto& ambientDirectionPointlight = CreateEntity();
 		TransformComponent tc;
 		tc.Scale = { 0.1f,.1f,.1f };
 		tc.Position = { 0,0,0 };
-		tc.Angles = { -1.6, 2, 0 };
+		//tc.Angles = { +1.6, 2, 0 };
 		ambientDirectionPointlight.AddComponent<TransformComponent>(std::move(tc));
-		//ambientDirectionPointlight.AddComponent<DirectionalLightComponent>();
+		ambientDirectionPointlight.AddComponent<DirectionalLightComponent>();
 		ambientDirectionPointlight.AddComponent<PointLightComponent>();
 		ambientDirectionPointlight.AddComponent<AmbientLightComponent>();
 		ambientDirectionPointlight.SetName("Lights");
-		auto mrc = ModelRendererComponent("primitive/sphere.obj",{},{Teqnique::Unlit()});
+		auto mrc = ModelRendererComponent("primitive/sphere.obj",{Unlit, func()});
 		ambientDirectionPointlight.AddComponent<ModelRendererComponent>(std::move(mrc));
-
 		
+		auto& gobber = CreateEntity("Gobber");
+		tc = TransformComponent();
+		tc.Scale = { .5f,.5f,.5f };
+		gobber.AddComponent<TransformComponent>(std::move(tc));
+		mrc = ModelRendererComponent("gobber/gobber.obj", {  Phong , Debug, func()});
+		gobber.AddComponent<ModelRendererComponent>(std::move(mrc));
 		
-		/*auto& Pointlight2 = CreateEntity();
+		auto& Pointlight2 = CreateEntity();
 		tc = TransformComponent();
 		tc.Scale = { 0.1f,.1f,.1f };
 		tc.Position = { 10, 0, 20 };
 		Pointlight2.AddComponent<TransformComponent>(std::move(tc));
 		Pointlight2.AddComponent<PointLightComponent>();
 		Pointlight2.SetName("Lights");
-		mrc = ModelRendererComponent("primitive/sphere.obj", {}, { Teqnique::Unlit() });
-		Pointlight2.AddComponent<ModelRendererComponent>(std::move(mrc));*/
+		mrc = ModelRendererComponent("primitive/sphere.obj",{ Unlit ,func()});
+		Pointlight2.AddComponent<ModelRendererComponent>(std::move(mrc));
 
 		auto& SpotLight = CreateEntity("SpotLight");
 		tc = TransformComponent();
@@ -85,66 +126,50 @@ namespace En3rN::DX
 		tc.Angles = { -1,0,0 };
 		SpotLight.AddComponent<TransformComponent>(std::move(tc));
 		SpotLight.AddComponent<SpotLightComponent>();
-		mrc = ModelRendererComponent("primitive/sphere.obj", {}, { Teqnique::Unlit() });
+		mrc = ModelRendererComponent("primitive/sphere.obj",{ Unlit,func()});
 		SpotLight.AddComponent<ModelRendererComponent>(std::move(mrc));
 
-		/*auto& cubeBrick = CreateEntity();
+		auto& cubeBrick = CreateEntity();
 		cubeBrick.SetName("BrickCube");
 		tc=TransformComponent();
 		tc.Position = { 0,0,10 };
 		cubeBrick.AddComponent<TransformComponent>(std::move(tc));
-		defaultsteps.AddBindable(std::make_shared<PixelShader>(defaultsteps.GetPassName(), "debug"));
-		Debug.AddStep(std::move(defaultsteps));
-		mrc = ModelRendererComponent("primitive/cube.obj", {}, { Teqnique::Phong() , std::move(Debug) });
+		mrc = ModelRendererComponent("primitive/cube.obj", { Phong , Debug, func()});
 		cubeBrick.AddComponent<ModelRendererComponent>(std::move(mrc));
 
 
-		auto& cube = CreateEntity();
-		cube.SetName("BrickWall");
+		/*auto& cube = CreateEntity("BrickWall");
 		tc = TransformComponent();
 		tc.Position = { 0,0,5 };
 		cube.AddComponent<TransformComponent>(std::move(tc));
-		defaultsteps = Teqnique::Phong().GetSteps()[0];
-		defaultsteps.AddBindable(std::make_shared<PixelShader>(defaultsteps.GetPassName(), "debug"));
-		Debug.AddStep(std::move(defaultsteps));
-		mrc = ModelRendererComponent("brick_wall/brick_wall.obj", {}, { Teqnique::Phong() , std::move(Debug) });		
-		cube.AddComponent<ModelRendererComponent>(std::move(mrc));
+		mrc = ModelRendererComponent("brick_wall/brick_wall.obj",{ Phong , Debug});
+		cube.AddComponent<ModelRendererComponent>(std::move(mrc));*/
 
-		auto& sphere = CreateEntity();
+		/*auto& sphere = CreateEntity();
 		sphere.SetName("Bricksphere");
 		tc = TransformComponent();
 		tc.Position = { 0,0,2 };
-		sphere.AddComponent<TransformComponent>(std::move(tc));
-		Debug = { "Debug" };
-		defaultsteps = Teqnique::Phong().GetSteps()[0];
-		defaultsteps.AddBindable(std::make_shared<PixelShader>(defaultsteps.GetPassName(), "debug"));
-		Debug.AddStep(std::move(defaultsteps));
-		mrc = ModelRendererComponent("primitive/sphere.obj", {}, { Teqnique::Phong() , std::move(Debug) });
-		sphere.AddComponent<ModelRendererComponent>(std::move(mrc));
+		sphere.AddComponent<TransformComponent>(std::move(tc));	
+		
+		mrc = ModelRendererComponent("primitive/sphere.obj", { Phong , Debug});
+		sphere.AddComponent<ModelRendererComponent>(std::move(mrc));*/
 
-		auto& gobber = CreateEntity("Gobber");
-		tc = TransformComponent();
-		tc.Scale = { .5f,.5f,.5f };
-		gobber.AddComponent<TransformComponent>(std::move(tc));
-		Debug = { "Debug" };
-		defaultsteps = Teqnique::Phong().GetSteps()[0];
-		defaultsteps.AddBindable(std::make_shared<PixelShader>(defaultsteps.GetPassName(), "debug"));
-		Debug.AddStep(std::move(defaultsteps));
-		mrc = ModelRendererComponent("gobber/gobber.obj", {}, { Teqnique::Phong() , std::move(Debug) });
-		gobber.AddComponent<ModelRendererComponent>(std::move(mrc));*/
+		
 
-		auto& sponsa = CreateEntity("Sponza");
+
+		/*auto& sponsa = CreateEntity("Sponza");
 		tc = TransformComponent();
 		tc.Scale = { .01f,.01f,.01f };
 		sponsa.AddComponent<TransformComponent>(std::move(tc));
-		Debug = { "Debug" };
-		defaultsteps = Teqnique::Phong().GetSteps()[0];
-		defaultsteps.AddBindable(std::make_shared<PixelShader>(defaultsteps.GetPassName(), "debug"));
-		Debug.AddStep(std::move(defaultsteps));
-		mrc = ModelRendererComponent("sponza/sponza.obj", {}, { Teqnique::Phong() , std::move(Debug) });
+		mrc = ModelRendererComponent("sponza/sponza.obj", {}, { Phong , Debug });
 		sponsa.AddComponent<ModelRendererComponent>(std::move(mrc));
 
-		
+		auto& nano = CreateEntity("Nano");
+		tc = TransformComponent();
+		tc.Scale = { .5,.5,.5 };
+		nano.AddComponent<TransformComponent>(std::move(tc));
+		mrc = ModelRendererComponent("nanosuit/nanosuit.obj", {}, { Phong,Debug });
+		nano.AddComponent<ModelRendererComponent>(std::move(mrc));*/
 
 
 	}
@@ -163,6 +188,37 @@ namespace En3rN::DX
 	{
 		m_entities.emplace_back(Entity(m_registry, std::move(tag)));
 		return m_entities.back();
+	}
+
+	Entity& Scene::GetEntity(entt::entity entt)
+	{		
+		for(auto& entity : m_entities){
+			auto found = entity.FindChild(entt);
+			if(found)
+				return *found;
+		}
+		throw EnExcept("Entity Not Found");
+	}
+
+	Mesh::Index Scene::FindMesh(const std::string& name)
+	{
+		auto it = std::find_if(begin(Meshes), end(Meshes),
+			[&](auto& mesh) {
+				return mesh.GetName() == name;
+			});
+		if(it == std::end(Meshes)) return Meshes.size();
+		return it - std::end(Meshes);
+	}
+
+	Material::Index Scene::FindMaterial(const std::string& name)
+	{
+		auto it = std::find_if(begin(Materials), end(Materials),
+			[&](auto& mat) {
+				return mat.GetName() == name;
+			});
+		if(it == std::end(Materials)) return Materials.size();
+		return it - std::end(Materials);
+		
 	}
 
 
@@ -204,37 +260,38 @@ namespace En3rN::DX
 			throw EnExcept(err);
 		}
 		Logger::Debug(importer.GetErrorString());
-		Material::Index startSlotMaterials = m_materials.size();
-		
-		if(scene->mRootNode->mNumChildren > 1)
-			for(auto i = 0; i < scene->mRootNode->mNumChildren; ++i)
-				entity.AddChild(CreateEntities(scene->mRootNode->mChildren[i], scale));
-		else
-			for(auto i = 0; i < scene->mRootNode->mNumChildren; ++i) {
-				uint32_t startSlotMeshes = m_meshes.size();
-				auto node = scene->mRootNode->mChildren[i];				
 
-				auto& mrc = entity.GetComponent<ModelRendererComponent>();
-				for(auto i = 0; i < node->mNumMeshes; ++i)
-				{
-					mrc.Meshes.push_back(node->mMeshes[i] + startSlotMeshes);
-				};
-			}
-		for(auto i = 0; i < scene->mNumCameras; ++i){
-		};
-		for(auto i = 0; i < scene->mNumCameras; ++i){
+		auto startSlotMeshes = Meshes.size();
+		auto startSlotMaterials = Materials.size();
+		for( auto i = 0; i < scene->mNumCameras; ++i ) {
+			scene->mCameras[i];
 		};
 		for(auto i = 0; i < scene->mNumLights; ++i) {
 		};
 		for(auto i = 0; i < scene->mNumMaterials; ++i) {
-			m_materials.push_back(Material(scene->mMaterials[i],path.remove_filename()));
-		};		
-		for(auto i = 0; i < scene->mNumMeshes; ++i) {
-			auto mesh = Mesh(scene->mMeshes[i], startSlotMaterials);
-			for(auto& teq : mrc->Teqniques)
-				mesh.AddTeqnique(teq, m_materials);
-			m_meshes.push_back(std::move(mesh));
+			Materials.push_back(Material(scene->mMaterials[i], path.remove_filename()));
 		};
+		for(auto i = 0; i < scene->mNumMeshes; ++i) {
+			Meshes.push_back(Mesh(scene->mMeshes[i], startSlotMaterials));
+		};
+		
+		auto& teqniques = mrc->Teqniques;
+		auto& meshIndecies = mrc->MeshIndecies;
+
+		if(scene->mRootNode->mNumChildren > 1)
+			for(auto i = 0; i < scene->mRootNode->mNumChildren; ++i)
+				entity.AddChild(Entity(m_registry, scene->mRootNode->mChildren[i], teqniques, startSlotMeshes));
+		else
+			for(auto i = 0; i < scene->mRootNode->mNumChildren; ++i) {
+				auto node = scene->mRootNode->mChildren[i];
+				for(auto i = 0; i < node->mNumMeshes; ++i) {
+					meshIndecies.push_back(node->mMeshes[i] + startSlotMeshes);
+					auto& mesh = Meshes[meshIndecies.back()];
+					for(auto teq : teqniques)
+						mesh.AddTeqnique(teq, Materials);
+				};
+			}
+		entity.OnUpdate<TransformComponent>();
 	}
 
 	/*void En3rN::DX::Scene::AddLight(Light light)
@@ -255,23 +312,30 @@ namespace En3rN::DX
 	{
 		Camera::GetActiveCamera().SetConstantBuffer();
 		static Light lights(m_registry);
-		/*for(auto& light : lights)
-			light.OnUpdate();*/
 		lights.OnUpdate();
 		//Model modelsystem;		
 		static entt::observer transformObserver(m_registry, entt::collector.update<TransformComponent>());
-		//transformObserver.connect(m_registry, entt::collector.update<TransformComponent>());
-		for(auto entt : transformObserver){
-			auto& transform = m_registry.get<TransformComponent>(entt);			
-			transform.Transform = Transform::GetMatrix(transform.Position, transform.Angles, transform.Scale);
-			for(auto& teq : m_registry.get<ModelRendererComponent>(entt).Teqniques)
-				for(auto& step : teq.GetSteps()) {
-					auto cbuf = step.GetBindable<Transform::ConstantBuffer>();
-					if(cbuf)
-						cbuf->Update(transform.Transform);
-				}
-					
+		static entt::observer mrcObserver(m_registry, entt::collector.update<ModelRendererComponent>());
+		transformObserver.each([&](entt::entity entt) {
+			auto& entity = GetEntity(entt);
+			entity.OnUpdate<TransformComponent>();
+			});
+		mrcObserver.each([&](entt::entity entt) {
+			auto& entity = GetEntity(entt);
+			entity.OnUpdate<ModelRendererComponent>();
+			});
+		auto sink = m_registry.on_update<TransformComponent>();
+		
+		
+		
+
+
+
+		/*for(auto entt : transformObserver){
+			auto& entity = GetEntity(entt);
+			entity.OnUpdate<TransformComponent>();
 		}
+		transformObserver.clear();*/
 
 		/*auto modelView = m_registry.view<ModelRendererComponent, TransformComponent>();
 		for(auto [entt, mrc, transform] : modelView.each()) {
@@ -294,14 +358,15 @@ namespace En3rN::DX
 		UIControls();
 		auto view = m_registry.view<ModelRendererComponent, TransformComponent>();
 		for(auto [entt, mrc, transform] : view.each()) {
-			for(auto meshindex : mrc.Meshes){
-				auto& mesh = m_meshes[meshindex];
-				auto& material = m_materials[mesh.GetMaterialIndex()];
-				for(auto& teq : mesh.GetTeqniques()) {
+			for(auto& meshIndex : mrc.MeshIndecies){
+				auto& mesh = Meshes[meshIndex];
+				auto& material = Materials[mesh.GetMaterialIndex()];
+				auto& teqniques = mesh.GetTeqniques();
+				for(auto& teq :teqniques) {
 					if(teq.IsActive())
 						for(auto& step : teq.GetSteps()) {
-							m_renderer->GetPass(step.GetRenderPassSlot()).AddJob(
-								Job(mesh, material, transform.Transform, step));
+							m_renderer->GetPass(step.GetPassName()).AddJob(
+								RenderJob(mesh, material,step));
 						}
 				}
 			}
@@ -317,7 +382,7 @@ namespace En3rN::DX
 		struct ComboParam
 		{
 			std::string items;
-			uint32_t	count;
+			uint32_t	count{};
 		};
 		//windows
 		static bool ImGuiOn = true;
@@ -432,7 +497,7 @@ namespace En3rN::DX
 		return false;
 	}
 
-	Entity Scene::CreateEntities(aiNode* node, Vec3f scale)
+	/*Entity Scene::CreateEntities(aiNode* node, Vec3f scale)
 	{
 		uint32_t startSlotMeshes = m_meshes.size();
 		
@@ -455,7 +520,7 @@ namespace En3rN::DX
 		for(auto i = 0; i < node->mNumChildren; ++i)
 			e.AddChild(CreateEntities(node->mChildren[i], scale));
 		return e;
-	}
+	}*/
 	
 }
 

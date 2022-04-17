@@ -22,7 +22,7 @@ namespace En3rN::DX
 
 	bool Mouse::OnEvent(Event& e)
 	{
-		if (e.type==Event::Type::RawCapture)
+		if (e.type==Event::Flag::RawCapture)
 		{			
 			ToggleRawCaptureMode();
 		}

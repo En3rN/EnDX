@@ -27,12 +27,13 @@ namespace En3rN::DX
 		errchk::hres(pDevice->CreateDepthStencilView(pDepthBuf.Get(), &dsVDesc, m_dsv.GetAddressOf()));
     }
 
-    ID3D11DepthStencilView* DepthStencil::Get()
+    ID3D11DepthStencilView* DepthStencil::GetP()
     {
         return m_dsv.Get();
     }
-	auto DepthStencil::Clear(UINT flags, float depth, UINT8 stencil)
+	bool DepthStencil::Clear(UINT flags, float depth, UINT8 stencil)
 	{
 		pContext->ClearDepthStencilView(m_dsv.Get(), flags, depth, stencil);
+		return true;
 	}
 }

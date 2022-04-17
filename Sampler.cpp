@@ -19,8 +19,6 @@ namespace En3rN::DX
 	}
 	void Sampler::Bind()
 	{
-		if (IsBound())
-			return;
 		pContext->PSSetSamplers(0, 1, pSampler.GetAddressOf());
 	}
 	/*bool Sampler::IsBound()

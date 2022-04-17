@@ -10,7 +10,9 @@ namespace En3rN::DX
 		friend class InfoManager;
 	protected:
 		GfxResources();
+		GfxResources(const GfxResources& other) = default;
 		GfxResources(GfxResources&& other) noexcept = default;
+		GfxResources& operator = (const GfxResources& other) = default;
 		GfxResources& operator = (GfxResources&& other) noexcept = default;
 		virtual ~GfxResources() = default;
 		static ID3D11DeviceContext& GetContext();

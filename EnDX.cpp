@@ -9,6 +9,7 @@
 #include "teapot.h"
 #include "RandomFactory.h"
 #include "RenderTarget.h"
+#include "DepthStencil.h"
 
 namespace En3rN::DX
 {
@@ -19,15 +20,14 @@ namespace En3rN::DX
         assert(!windows.empty());
         Window& wnd = GetWindow();
         Event::Handler& eventHandler = wnd.GetEventHandler();
-        Graphics& gfx = wnd.GetGfx();
         Keyboard& kbd = wnd.GetKbd();
         Mouse& mouse = wnd.GetMouse();
+        Graphics& gfx = wnd.GetGfx();        
         wnd.Register();
         mouse.Register();
-        RenderTarget rtv(256, 256);
-        DepthStencil dsv(256, 256);
-        rtv.Set(&dsv);
-        LoadScene();
+        Renderer renderer(gfx);
+        scenes.emplace_back(std::make_unique<Scene>(&renderer));
+        
         while (ProcessMsg())
         {
             auto deltaTime = timer.GetFrameTimer();
@@ -77,7 +77,7 @@ namespace En3rN::DX
     }
     bool EnDX::NewScene()
     {
-        scenes.emplace_back(std::make_unique<Scene>(&GetWindow().GetGfx().GetRenderer()));
+        //scenes.emplace_back(std::make_unique<Scene>(&GetWindow().GetGfx().GetRenderer()));
         return true;
     }
     bool EnDX::AddObjectToScene()
@@ -85,8 +85,7 @@ namespace En3rN::DX
         return false;
     }
     bool EnDX::LoadScene()
-    {
-        scenes.emplace_back(std::make_unique<Scene>(&GetWindow().GetGfx().GetRenderer()));
+    {        
         auto& scene = *scenes.back().get();
         RandomFactory factory;
        
