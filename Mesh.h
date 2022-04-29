@@ -5,17 +5,15 @@
 #include "enBuffer.h"
 #include "Material.h"
 #include "Shader.h"
-#include "Entity.h"
 #include "InputLayout.h"
 #include "Teqnique.h"
 #include <string>
 #include <vector>
 
-class aiMesh;
+struct aiMesh;
 
 namespace En3rN::DX
-{	
-	
+{
 	class Mesh
 	{
 		//friend class Job;

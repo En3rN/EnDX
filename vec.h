@@ -19,7 +19,7 @@ namespace En3rN
 			*this = { tmp.x, tmp.y };
 		}
 		Vec2& operator = (const Vec2& other) = default;
-		Vec2& operator = (Vec2&& other) = default;
+		Vec2& operator = (Vec2&& other) noexcept = default;
 		Vec2 operator + (const Vec2& other) const
 		{
 			

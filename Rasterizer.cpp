@@ -15,10 +15,10 @@ namespace En3rN::DX
 		desc.ScissorEnable = FALSE;
 		desc.MultisampleEnable = TRUE;
 		desc.AntialiasedLineEnable = TRUE;
-		errchk::hres(pDevice->CreateRasterizerState(&desc, &pRasterizerState));
+		errchk::hres(GetDevice()->CreateRasterizerState(&desc, &pRasterizerState));
 	}
 	void Rasterizer::Bind()
 	{
-		pContext->RSSetState(pRasterizerState.Get());
+		GetContext()->RSSetState(pRasterizerState.Get());
 	}
 }

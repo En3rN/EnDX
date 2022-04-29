@@ -5,7 +5,7 @@
 #include <memory>
 #include <vector>
 
-class aiNode;
+struct aiNode;
 namespace En3rN::DX
 {
 	class Renderer;

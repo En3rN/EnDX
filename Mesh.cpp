@@ -1,5 +1,6 @@
 #include "Mesh.h"
 #include "BindableManager.h"
+#include "Scene.h"
 #include <assimp\mesh.h>
 #include <assert.h>
 
@@ -23,17 +24,14 @@ namespace En3rN::DX
 		for (auto i = 0; i < aimesh->GetNumUVChannels(); ++i) {
 			if (aimesh->HasTextureCoords(i)) {
 				std::string semantic("TexCoord[" + std::to_string(i) + ']');
-				m_buffer.add_element(aimesh->mTextureCoords[i], semantic, aimesh->mNumVertices, sizeof(aiVector3D));
+				auto tcords = aimesh->mTextureCoords[ i ];
+				m_buffer.add_element( aimesh->mTextureCoords[ i ], semantic , aimesh->mNumVertices, sizeof(aiVector3D));
 			}
 		}
 
 		if(aimesh->HasNormals())
 			m_buffer.add_element(aimesh->mNormals,"Normals", aimesh->mNumVertices, sizeof(aiVector3D));
 		if (aimesh->HasTangentsAndBitangents()){
-			/*for(auto i = 0; i < aimesh->mNumVertices; ++i) {
-				aimesh->mTangents[i] *= -1;
-				aimesh->mBitangents[i] *= -1;
-			}*/
 				m_buffer.add_element(aimesh->mTangents, "Tangents", aimesh->mNumVertices, sizeof(aiVector3D));
 				m_buffer.add_element(aimesh->mBitangents, "BiTangents", aimesh->mNumVertices, sizeof(aiVector3D));
 		}
@@ -48,11 +46,10 @@ namespace En3rN::DX
 			for (auto index = 0u; index < aimesh->mFaces[face].mNumIndices; ++index)
 				indecies.push_back(aimesh->mFaces[face].mIndices[index]);
 		m_topology = BindableManager::Query<Topology>((D3D_PRIMITIVE_TOPOLOGY)aimesh->mPrimitiveTypes);
-		m_vertexBuffer = std::make_shared<VertexBuffer>(m_buffer, m_name);
-		m_indexBuffer = std::make_shared<IndexBuffer>(indecies, m_name);
+		m_vertexBuffer = BindableManager::Query<VertexBuffer>(m_buffer, m_name);
+		m_indexBuffer = BindableManager::Query<IndexBuffer>(indecies, m_name);
 		m_vertexShader = BindableManager::Query<VertexShader>("VertexShader.cso");
 		m_inputLayout = BindableManager::Query<InputLayout>(m_vertexShader->GetSignatures(), m_vertexShader->GetBlob(), GetName());
-		
 	}
 	
 	const std::string& Mesh::GetName() const 
@@ -93,8 +90,7 @@ namespace En3rN::DX
 		m_materialIndex = index;
 	}
 
-	void Mesh::AddTeqnique(Teqnique teqnique, const Material::Container& materials)
-	{
+	void Mesh::AddTeqnique(Teqnique teqnique, const Material::Container& materials){
 		for(auto& step : teqnique.GetSteps()) 
 		{
 			if(!step.HasBindable<PixelShader>()) {
@@ -105,13 +101,19 @@ namespace En3rN::DX
 			/*auto vs = BindableManager::Query<VertexShader>(step.GetPassName(), materials[m_materialIndex].GetShaderEntryPoint());
 			auto il = BindableManager::Query<InputLayout>(vs->GetSignatures(), vs->GetBlob(), m_name);*/
 		}
+		auto found = std::find(begin(m_teqniques), end(m_teqniques), teqnique);
+		if(found != std::end(m_teqniques))
+		{
+			auto it = m_teqniques.erase(found);
+			m_teqniques.insert(it, teqnique);
+			return;
+		}
 		m_teqniques.push_back(teqnique);
 	}
 
 	void Mesh::Update(float dt)
 	{
 		int dummy = 0;
-
 	}
 
 	void Mesh::Bind() const

@@ -1,6 +1,8 @@
 #include "Component.h"
 #include "Camera.h"
 #include "Window.h"
+#include "Model.h"
+#include "Mesh.h"
 
 
 namespace En3rN::DX

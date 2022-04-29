@@ -1,28 +1,20 @@
 #pragma once
 #include "iBindable.h"
+#include "DepthStencil.h"
 namespace En3rN::DX
 {
-    class Stencil : public Bindable
+    class DepthStencilState : public Bindable
     {
-    public:
-        using handle = std::shared_ptr<Stencil>;
-        enum class State{ DepthOnly, StencilEnabled, DepthOnlyFuncLessEqualNoWrite };
-        Stencil(State state);
-        static std::string GetKey(State state)
-        {
-            return typeid(Stencil).name() + std::to_string((int)state);
-        }
-        /*bool IsBound() override
-        {
-            ID3D11DepthStencilState* current;
-            pContext->OMGetDepthStencilState(&current,NULL);
-            if (pStencilState.Get() == current)
-                return true;
-            return false;
-        }*/
+    public:        
+        using handle = std::shared_ptr<DepthStencilState>;
+        enum class Depth{ Enable, Disable, FuncLessEqualNoWrite };
+        enum class Stencil { Disable, Read , Write};
+        DepthStencilState(Depth depth= Depth::Enable, Stencil stencil = Stencil::Disable, ::UINT stencilRef = 0);
         void Bind();
     private:
-        State state;
+        Depth m_depth;
+        Stencil m_stencil;
+        UINT  m_ref;
         ComPtr<ID3D11DepthStencilState> pStencilState;
     };
 }

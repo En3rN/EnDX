@@ -1,8 +1,8 @@
 #pragma once
 
 #include "vec.h"
-#include "Model.h"
 #include "Mesh.h"
+#include "Teqnique.h"
 #include <filesystem>
 #include <memory>
 #include <vector>
@@ -11,7 +11,7 @@
 
 namespace En3rN::DX
 {
-	class Component
+	/*class Component
 	{
 	public:
 		struct Base
@@ -23,7 +23,7 @@ namespace En3rN::DX
 		virtual void OnUpdate() = 0;
 		virtual void OnDetach() = 0;
 		virtual ~Component() = default;
-	};
+	};*/
 	struct UIDComponent
 	{
 		size_t	uId{};
@@ -47,27 +47,28 @@ namespace En3rN::DX
 	struct PointLightComponent
 	{
 		Vec4f Color = { 1,1,1,1 };
-		Vec3f Attenuation = { 1,0.025,0.003 };
+		Vec3f Attenuation = { 1.f,0.025f,0.003f };
 	};
 	struct SpotLightComponent
 	{
 		Vec4f Color = { 1,1,1,1 };
-		Vec3f Attenuation = { 1,0.025,0.003 };
+		Vec3f Attenuation = { 1.f,0.025f,0.003f };
 		float ConeInner = 0.8f;
 		float ConeOuter = 0.8f;
 	};
 	struct TransformComponent
 	{
 		Transform::Matrix Transform = DirectX::XMMatrixIdentity();
+		Transform::Matrix ParentTransform = DirectX::XMMatrixIdentity();
 		Vec3f Position{};
 		Vec3f Angles{};
 		Vec3f Scale{1,1,1};
 	};	
 	struct ModelRendererComponent
-	{
+	{		
 		std::filesystem::path				Path;
-		std::vector<Mesh::Index>			Meshes;
 		std::vector<Teqnique>				Teqniques;
+		std::vector<Mesh::Index>			MeshIndecies;
 	};
 	struct CameraComponent;
 	

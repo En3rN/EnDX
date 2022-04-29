@@ -52,7 +52,7 @@ namespace En3rN::DX
         AddBindable(BindableManager::Query<VertexBuffer>          (buf, "plane"));
         AddBindable(BindableManager::Query<IndexBuffer>         (indecies, "plane"));
         AddBindable(BindableManager::Query<InputLayout>         (signatures, vs->GetBlob(),"plane"));
-        AddBindable(BindableManager::Query<Texture>             ("gafi.jpg"));
+        AddBindable(BindableManager::Query<Texture>             (std::filesystem::path("gafi.jpg")));
         AddBindable(BindableManager::Query<Sampler>             (Sampler::State::Wrap));
         AddBindable(BindableManager::Query<Rasterizer>          (Rasterizer::State::None));
         AddBindable(BindableManager::Query<Material::ConstantBuffer>(1, 1));
@@ -74,7 +74,7 @@ namespace En3rN::DX
     }
     void Plane::Draw()
     {
-        pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        pContext->DrawIndexed(indexCount, 0, 0);
+        GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        GetContext()->DrawIndexed(indexCount, 0, 0);
     }
 }

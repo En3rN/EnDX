@@ -43,7 +43,7 @@ namespace En3rN::DX
 		void AddTeqnique(Teqnique teqnique);
 		void ApplyTransform(Vec3f position, Vec3f rotationAngles, Vec3f scale);
 
-		const Material& GetMaterial(Material::Index index) const { return m_materials[index]; }
+		const Material& GetMaterial(Material::Index index) const { return Materials[index]; }
 		const std::string& GetName() const { return m_name; }
 		
 		Node::handle GetRootNode() { return m_rootNode; }
@@ -59,8 +59,8 @@ namespace En3rN::DX
 		std::string						m_name;
 		Transform						m_transform;
 		std::filesystem::path			m_path;
-		Mesh::Container					m_meshes;
-		Material::Container				m_materials;
+		Mesh::Container					Meshes;
+		Material::Container				Materials;
 		Node::handle					m_rootNode;
 		bool							m_controlWindow = true;
 	};

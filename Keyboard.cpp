@@ -12,9 +12,9 @@ namespace En3rN::DX
         {
             switch(e.type)
             {
-            case Event::Type::KeyUp:
+            case Event::Flag::KeyUp:
                 OnKeyRelease((uint8_t)e.lparam);
-            case Event::Type::KeyDown:
+            case Event::Flag::KeyDown:
                 OnKeyPress((uint8_t)e.lparam);
             default:
                 break;

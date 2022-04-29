@@ -7,34 +7,39 @@
 
 namespace En3rN::DX
 {
-	class Pass;
-	class Renderer
+	class Renderer : public GfxResources
 	{
 	public:
-		template <typename ... Passes>
-		Renderer(Passes ... passes) {AddPass((passes)...);}
+		Renderer();
 		Renderer(const Renderer& other) = default;
 		Renderer(Renderer&& other) noexcept = default;
 		Renderer& operator=(const Renderer& other) = default;
 		Renderer& operator=(Renderer&& other)noexcept = default;
-		~Renderer() = default;
+		template <typename ... Passes>
+		Renderer(Passes ... passes){
+			AddPass((passes)...)
+		;}
+		~Renderer() noexcept = default;
 
-		Pass& GetPass(Pass::Name name);
-		void Init(ID3D11DeviceContext* context) { m_context = context; }
-		void AddPass(Pass& pass);
+		RenderPass& GetPass(const std::string& passName);
+		RenderTarget& GetRenderTarget(const std::string& rtName);		
+
+		void AddRenderTarget(const RenderTarget& renderTarget);
+		void AddPass(std::unique_ptr<RenderPass>&& pass);
+		template <typename ... Passes>
+		void AddPass(RenderPass pass, Passes ... rest)
+		{
+			AddPass(pass);
+			AddPass(rest...);
+		}
 		bool Bound(const Bindable::Base::handle& bindable);
 		void Draw();
 
 	private:
-		template <typename ... Passes>
-		void AddPass(Pass& pass, Passes ... rest)
-		{
-			AddPass(pass);
-			AddPass((rest)...);
-		}
-		ID3D11DeviceContext* m_context;
-		Pass::Container m_passes;
-		Bindable::Base::Container m_currentBindings;
+		
+		RenderTarget::Container m_renderTargets;
+		DepthStencil::Container	m_depthStencils;
+		RenderPass::Container	m_passes;
 	};
 	
 }

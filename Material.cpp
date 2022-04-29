@@ -9,8 +9,9 @@
 
 namespace En3rN::DX
 {
-	Material::Material(const aiMaterial* aimaterial, std::filesystem::path modelPath): m_data{},
+	Material::Material(aiMaterial* aimaterial, std::filesystem::path modelPath): m_data{},
 		m_constantBuffer(std::make_shared<ConstantBuffer>(1, 1)),
+		m_name(aimaterial->GetName().C_Str()),
 		m_updateConstantBuffer(true)
 	{
 		using std::filesystem::path;
@@ -132,12 +133,12 @@ namespace En3rN::DX
 	
 	void Material::AddTextureMap(Map map, const std::shared_ptr<Texture> texture)
 	{
-		m_hasMap[std::underlying_type<Map>::type(map)] = true;
+		m_hasMap[MapT(map)] = true;
 		m_textures.push_back(texture);		
 	}
 	const bool Material::HasMap(Map map) const
 	{
-		return m_hasMap[std::underlying_type<Map>::type(map)];
+		return m_hasMap[MapT(map)];
 	}
 
 	void Material::SetPixelShader(std::filesystem::path filename)
@@ -176,22 +177,22 @@ namespace En3rN::DX
 		static ImGuiColorEditFlags flags = ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_NoInputs;
 		m_updateConstantBuffer += ImGui::ColorEdit4("Diffuse", &m_data.diffuse.x, flags);
 		m_updateConstantBuffer += ImGui::ColorEdit3("Specular", &m_data.specular.x,flags); 
-		m_updateConstantBuffer += ImGui::DragFloat("SpecularIntensity", &m_data.specularIntensity, .0001f);
-		m_updateConstantBuffer += ImGui::DragFloat("SpecularPower", &m_data.specularPower,.0001f);
+		m_updateConstantBuffer += ImGui::DragFloat("SpecularIntensity", &m_data.specularIntensity, .001f);
+		m_updateConstantBuffer += ImGui::DragFloat("SpecularPower", &m_data.specularPower,.001f);
 		m_updateConstantBuffer += ImGui::ColorEdit4("Emissive", &m_data.emissive.x, flags);
 		if(ImGui::Checkbox("Diffuse Map",&diffMap))
 		{
-			m_hasMap[std::underlying_type<Map>::type(Map::Diffuse)] = diffMap;
+			m_hasMap[MapT(Map::Diffuse)] = diffMap;
 			change = true;
 		}
 		if(ImGui::Checkbox("Specular Map",&specMap))
 		{
-			m_hasMap[std::underlying_type<Map>::type(Map::Specular)] = specMap;
+			m_hasMap[MapT(Map::Specular)] = specMap;
 			change = true;
 		}
 		if(ImGui::Checkbox("Normal Map",&normalMap))
 		{
-			m_hasMap[std::underlying_type<Map>::type(Map::Normal)] = normalMap;
+			m_hasMap[MapT(Map::Normal)] = normalMap;
 			change = true;
 		}
 		UpdateConstantBuffer();

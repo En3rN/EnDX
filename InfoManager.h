@@ -1,12 +1,12 @@
 #pragma once
-#include "end3d11.h"
 #include "iHandle.h"
+#include "end3d11.h"
 #include <deque>
 #include <string>
 
 namespace En3rN::DX
 {
-	class InfoManager :  unPtr(InfoManager)
+	class InfoManager : unPtr(InfoManager)
 	{
 	public:
 		using InfoQ = std::deque<std::string>;

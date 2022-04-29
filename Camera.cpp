@@ -41,17 +41,17 @@ namespace En3rN::DX
 
 	bool Camera::OnEvent(Event& e)
 	{
-		if (e.category == Event::Category::Keyboard && e.type == Event::Type::KeyDown)
+		if (e.category == Event::Category::Keyboard && e.type == Event::Flag::KeyDown)
 			if (e.wparam == keyMappings[(int)KeyMapping::SetRawMode])
 			{
 				auto& eh = Window::GetEventHandler();
 				Logger::Debug("setting rawcapture");
-				eh.AddEvent(Event(Event::Category::Window, Event::Type::RawCapture, 0, 0));
-				eh.AddEvent(Event(Event::Category::Mouse, Event::Type::RawCapture, (WPARAM)this , 0));
+				eh.AddEvent(Event(Event::Category::Window, Event::Flag::RawCapture, 0, 0));
+				eh.AddEvent(Event(Event::Category::Mouse, Event::Flag::RawCapture, (WPARAM)this , 0));
 				ToggleRawCaptureMode();
 				return true;
 			}
-		if(e.type == Event::Type::RawCapture){
+		if(e.type == Event::Flag::RawCapture){
 			ToggleRawCaptureMode();
 		}
 		return false;

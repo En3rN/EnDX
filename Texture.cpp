@@ -4,11 +4,12 @@
 #include "logger.h"
 #include "BindableManager.h"
 #include "Config.h"
+#include "Resource.h"
 
 
 namespace En3rN::DX
 {
-	Texture::Texture(std::filesystem::path file, UINT slot, Type type) : m_slot(slot)
+	Texture::Texture(std::filesystem::path file, UINT slot, Flag type) : m_slot(slot)
 	{
 		using namespace DirectX;
 		std::filesystem::path path= Config::GetFolders().assets;
@@ -61,7 +62,7 @@ namespace En3rN::DX
 		tdesc.CPUAccessFlags = 0;
 		tdesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
-		errchk::hres(pDevice->CheckMultisampleQualityLevels(
+		errchk::hres(GetDevice()->CheckMultisampleQualityLevels(
 			tdesc.Format,
 			tdesc.SampleDesc.Count,
 			&tdesc.SampleDesc.Quality));
@@ -75,7 +76,7 @@ namespace En3rN::DX
 
 		switch (type)
 		{
-		case Texture::Type::Default:
+		case Texture::Flag::Default:
 		{
 			srvdesc.Format = tdesc.Format;
 			srvdesc.ViewDimension = D3D11_SRV_DIMENSION::D3D11_SRV_DIMENSION_TEXTURE2DMS;
@@ -86,7 +87,7 @@ namespace En3rN::DX
 			simg = std::move(mips);
 			break;
 		}
-		case Texture::Type::CubeMap:
+		case Texture::Flag::CubeMap:
 		{
 			tdesc.Width;
 			tdesc.Height; // /= 3
@@ -125,36 +126,106 @@ namespace En3rN::DX
 		}
 
 		}
-		ComPtr<ID3D11Resource> pTexture;
-		errchk::hres(CreateTexture(pDevice, simg.GetImages(), simg.GetImageCount(), simg.GetMetadata(), &pTexture));
-		errchk::hres(CreateShaderResourceView(pDevice, simg.GetImages(), simg.GetImageCount(), simg.GetMetadata(), &m_srv));		
+		ComPtr<ID3D11Resource> pResource;
+		errchk::hres(CreateTexture(GetDevice(), simg.GetImages(), simg.GetImageCount(), simg.GetMetadata(), &pResource));
+		errchk::hres(CreateShaderResourceView(GetDevice(), simg.GetImages(), simg.GetImageCount(), simg.GetMetadata(), &m_srv));
 	}
-	Texture::Texture(ComPtr<ID3D11Texture2D> tex, UINT slot, Type type) :
-		m_texture(tex), m_slot(slot)
+	Texture::Texture(Resource resource, UINT slot, Flag flag, std::string_view tag ) : m_slot(slot)
 	{
-		D3D11_TEXTURE2D_DESC tDesc{};
-		tex->GetDesc(&tDesc);
-		
+		auto dimention = resource.GetDimension();
 
-		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-		srvDesc.Format = tDesc.Format;
-		if(tDesc.ArraySize > 1) {
-			if(tDesc.MipLevels > 1)
-				srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY;
-			else
-				srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+		auto srvDesc = CD3D11_SHADER_RESOURCE_VIEW_DESC();
+
+		if( flag == Flag::NoCopy )
+			resource = Resource( dimention, resource.GetDesc() );
+
+		switch(dimention)
+		{
+		case D3D11_RESOURCE_DIMENSION_UNKNOWN:
+			srvDesc = CD3D11_SHADER_RESOURCE_VIEW_DESC(D3D11_SRV_DIMENSION::D3D11_SRV_DIMENSION_UNKNOWN);
+			break;
+		case D3D11_RESOURCE_DIMENSION_BUFFER:
+		{
+			auto buf = resource.GetResourceType<ID3D11Buffer>();
+			auto tDesc = std::get<0>(resource.GetDesc());
+			srvDesc = CD3D11_SHADER_RESOURCE_VIEW_DESC(buf.Get(), DXGI_FORMAT::DXGI_FORMAT_UNKNOWN, 0, tDesc.ByteWidth / tDesc.StructureByteStride);
+			if(tDesc.BindFlags & D3D11_BIND_SHADER_RESOURCE)
+				break;
+			ComPtr<ID3D11Buffer> tex;
+			tDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+			GetDevice()->CreateBuffer(&tDesc, nullptr, &tex);
+			if(flag != Flag::NoCopy)
+				GetContext()->CopyResource(tex.Get(), resource.GetP());
+			resource = Resource(std::move(tex));
+			break;
 		}
-		else {
-			if(tDesc.MipLevels > 1)
-				srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
-			else
-				srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		case D3D11_RESOURCE_DIMENSION_TEXTURE1D:
+		{
+			auto tex1 = resource.GetResourceType<ID3D11Texture1D>();
+			auto tDesc = std::get<1>(resource.GetDesc());
+			srvDesc = CD3D11_SHADER_RESOURCE_VIEW_DESC(tex1.Get(), D3D11_SRV_DIMENSION_TEXTURE1D, tDesc.Format);
+			if(tDesc.BindFlags & D3D11_BIND_SHADER_RESOURCE)
+				break;
+			
+			ComPtr<ID3D11Texture1D> tex;
+			tDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+			GetDevice()->CreateTexture1D(&tDesc, nullptr, &tex);
+			if(flag != Flag::NoCopy)
+				GetContext()->CopyResource(tex.Get(), resource.GetP());
+			resource = Resource(std::move(tex));
+			break;
 		}
-		errchk::hres(pDevice->CreateShaderResourceView(tex.Get(), &srvDesc, &m_srv));
+		case D3D11_RESOURCE_DIMENSION_TEXTURE2D:
+		{
+			auto tex2 = resource.GetResourceType<ID3D11Texture2D>();
+			auto tDesc = std::get<2>(resource.GetDesc());
+			srvDesc = CD3D11_SHADER_RESOURCE_VIEW_DESC(tex2.Get(), D3D11_SRV_DIMENSION_TEXTURE2D, tDesc.Format);
+			if(tDesc.BindFlags & D3D11_BIND_SHADER_RESOURCE)
+				break;
+			ComPtr<ID3D11Texture2D> tex;
+			tDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+			GetDevice()->CreateTexture2D(&tDesc, nullptr, &tex);
+			if(flag != Flag::NoCopy)
+				GetContext()->CopyResource(tex.Get(), resource.GetP());
+			resource = Resource(std::move(tex));
+			break;
+		}
+		case D3D11_RESOURCE_DIMENSION_TEXTURE3D:
+		{
+			auto tex3 = resource.GetResourceType<ID3D11Texture3D>();
+			auto tDesc = std::get<3>(resource.GetDesc());
+			srvDesc = CD3D11_SHADER_RESOURCE_VIEW_DESC(tex3.Get(), tDesc.Format);
+			if(tDesc.BindFlags & D3D11_BIND_SHADER_RESOURCE)
+				break;
+			tDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+			ComPtr<ID3D11Texture3D> tex;
+			GetDevice()->CreateTexture3D(&tDesc, nullptr, &tex);
+			if(flag!=Flag::NoCopy) 
+				GetContext()->CopyResource(tex.Get(), resource.GetP());
+			resource = Resource(std::move(tex));
+			break;
+		}
+		default:
+			break;
+		}
+
+		errchk::hres(GetDevice()->CreateShaderResourceView(resource.GetP(), &srvDesc, &m_srv));
+	}
+	
+	Resource Texture::GetResource()
+	{
+		ComPtr<ID3D11Resource> resource;
+		m_srv->GetResource(&resource);
+		return Resource(resource);
 	}
 
+	void Texture::SetBindslot(UINT slot)
+	{
+		m_slot = slot;
+	}
+	
 	void Texture::Bind()
 	{
-		pContext->PSSetShaderResources(m_slot, 1, m_srv.GetAddressOf());
+		GetContext()->PSSetShaderResources(m_slot, 1, m_srv.GetAddressOf());
 	}
 }

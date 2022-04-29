@@ -83,6 +83,7 @@ namespace En3rN::DX
 		return EnDX::Get().GetWindow().eventHandler;
 	}
 	Graphics& Window::GetGfx(){
+		assert( pGfx );  //Graphics not initialized
 		return *pGfx.get();
 	}
 	Keyboard& Window::GetKbd(){
@@ -175,7 +176,7 @@ namespace En3rN::DX
 		{
 			switch (e.type)
 			{
-			case Event::Type::RawCapture:
+			case Event::Flag::RawCapture:
 				mouse.ToggleRawCaptureMode();
 				if (cursorEnabled){
 					DisableCursor();
@@ -185,7 +186,7 @@ namespace En3rN::DX
 					EnableCursor();
 					return false;
 				}
-			case Event::Type::FullScreen:
+			case Event::Flag::FullScreen:
 				pGfx->SetFullscreen();
 				pGfx->OnResize(WindowWidth, WindowHeight);
 				pGfx->SetPresent(true);
@@ -210,10 +211,10 @@ namespace En3rN::DX
 		{
 		
 		case WM_KILLFOCUS:
-			kbd.Clear();
+			/*kbd.Clear();
 			mouse.Flush();
 			if(!cursorEnabled)
-				eventHandler.AddEvent(Event(Event::Category::Window, Event::Type::RawCapture, 0, 0));
+				eventHandler.AddEvent(Event(Event::Category::Window, Event::Type::RawCapture, 0, 0));*/
 			break;
 		case WM_SIZE: {
 			if (pGfx) {
@@ -233,7 +234,7 @@ namespace En3rN::DX
 		{
 			Logger::Debug("Press %c", wParam);
 			if (ImGui::GetIO().WantCaptureKeyboard) break;
-			eventHandler.AddEvent(Event(Event::Category::Keyboard, Event::Type::KeyDown, wParam, lParam));
+			eventHandler.AddEvent(Event(Event::Category::Keyboard, Event::Flag::KeyDown, wParam, lParam));
 			kbd.OnKeyPress((uint8_t)wParam);
 			break;
 		}
@@ -242,14 +243,14 @@ namespace En3rN::DX
 		{
 			Logger::Debug("Release %c", wParam);
 			if (ImGui::GetIO().WantCaptureKeyboard) break;
-			eventHandler.AddEvent(Event(Event::Category::Keyboard, Event::Type::KeyUp, wParam, lParam));
+			eventHandler.AddEvent(Event(Event::Category::Keyboard, Event::Flag::KeyUp, wParam, lParam));
 			kbd.OnKeyRelease((uint8_t)wParam);
 			break;
 		}
 			//mouse
 		case WM_MOUSEMOVE:
 		{
-			eventHandler.AddEvent(Event(Event::Category::Mouse, Event::Type::Move, wParam, lParam));
+			eventHandler.AddEvent(Event(Event::Category::Mouse, Event::Flag::Move, wParam, lParam));
 			POINTS pos = MAKEPOINTS(lParam);
 			mouse.OnMove(pos.x, pos.y);
 			break;
@@ -260,7 +261,7 @@ namespace En3rN::DX
 		{
 			Logger::Debug("Press %c", (uint8_t)wParam);
 			if (ImGui::GetIO().WantCaptureMouse) break;
-			Event e(Event::Category::Mouse, Event::Type::KeyDown, wParam, lParam);
+			Event e(Event::Category::Mouse, Event::Flag::KeyDown, wParam, lParam);
 			mouse.OnPress((uint8_t)wParam);
 			break;
 		}
@@ -270,7 +271,7 @@ namespace En3rN::DX
 		{
 			Logger::Debug("Release %c", (uint8_t)wParam);
 			if (ImGui::GetIO().WantCaptureMouse) break;
-			Event e(Event::Category::Mouse, Event::Type::KeyUp, wParam, lParam);
+			Event e(Event::Category::Mouse, Event::Flag::KeyUp, wParam, lParam);
 			mouse.OnRelease((uint8_t)wParam);
 			break;
 		}
@@ -306,7 +307,7 @@ namespace En3rN::DX
 				{
 					OutputDebugString("Style\n");
 					pGfx->SetPresent(false);
-					eventHandler.AddEvent(Event(Event::Category::Window, Event::Type::FullScreen, wParam, lParam));
+					eventHandler.AddEvent(Event(Event::Category::Window, Event::Flag::FullScreen, wParam, lParam));
 				}
 			}
 			break;

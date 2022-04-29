@@ -4,7 +4,7 @@
 #include "Camera.h"
 #include "Renderer.h"
 #include "UIControlsI.h"
-//#include "Component.h"
+#include "Helpers.h"
 #include <vector>
 
 namespace En3rN::DX
@@ -24,6 +24,9 @@ namespace En3rN::DX
 		void OnSceneChange();
 		void AddEntity(Entity&& entity);
 		Entity& CreateEntity(std::string&& tag = "EmptyEntity"); //constructs and stores an entity, returns &
+		Entity& GetEntity(entt::entity entt);
+		Mesh::Index FindMesh(const std::string & name);
+		Material::Index FindMaterial(const std::string & name);
 		void AddCamera(Camera camera);
 		void LoadModel(Entity& entity);
 		void AddModel(Model::handle model);
@@ -32,26 +35,11 @@ namespace En3rN::DX
 		void Draw();
 		
 		bool UIControls();
-
 		
-		template<typename Function, typename Tuple, size_t ... I>
-		auto call(Function f, Tuple& t, std::index_sequence<I ...>)
-		{
-			return f(std::get<I>(t) ...);
-		}
-		
-		template<typename ...Ts>
-		void unpackTuple(std::tuple<Ts...>& tuple)
-		{
-			std::apply([&](Ts&... tupleArgs){
-					UIComponents(tupleArgs ...);
-				}, tuple
-			);
-		}
-
 		template <typename T, typename ... Ts>
-		void UIComponents(T& component, Ts& ... rest)
+		bool UIComponents(T& component, Ts& ... rest)
 		{
+			bool change = false;
 			
 			if (component)
 			{
@@ -69,41 +57,38 @@ namespace En3rN::DX
 					ImGui::DragFloat3("Attenuation", &component->Attenuation.x);
 					ImGui::SliderFloat("ConeInner", &component->ConeInner, 0, 1);
 					ImGui::SliderFloat("ConeOuter", &component->ConeOuter, 0, 1);
-				}
-				if constexpr(std::is_same_v<TransformComponent*, T>) {
-					UIControls(*component);
-				}
-				if constexpr(std::is_same_v<Transform*, T>) {
-					component->UIControls();
-				}
-				if constexpr(std::is_same_v<ModelRendererComponent*, T>) {
-					UIControls(*component);
-				}
+				}				
+				UIControls( *component );
 			}
 			if constexpr (sizeof ...(rest) > 0)
 				UIComponents((rest)...);
-			return;
+			return change;
 		}
 		template <class T>
-		auto UIControls(T& component)
-		{
+		bool UIControls(T& component){
 			return false;
 		}
-		auto UIControls(ModelRendererComponent& mrc)
+		bool UIControls(ModelRendererComponent& mrc)
 		{
+			/*auto tag = []( auto meshid, auto name ) {
+				std::string s = "##" + std::to_string( meshid ) + name;
+				return s;
+			};*/
 			auto change = false;
 			static std::string outPut;
-			for(auto i : mrc.Meshes) {
-				auto& mesh = m_meshes[i];
-				auto& material = m_materials[mesh.GetMaterialIndex()];
+			for(auto& meshIndex : mrc.MeshIndecies) {
+				int i = 0;
+				auto& mesh = Meshes[meshIndex];
+				auto& material = Materials[mesh.GetMaterialIndex()];
+				auto& teqniques = mesh.Teqniques();
 				outPut = "Mesh: " + mesh.GetName() + ":";
 				ImGui::Text(outPut.c_str());
 				ImGui::Text("Materials:");
 				if(material.UIControls())
 				{
-					for(auto& teq : mesh.Teqniques())
+					for(auto& teq : teqniques)
 						for(auto& step : teq.GetSteps())
-							if(step.GetRenderPassSlot() == Pass::Name::Phong) {
+							if(step.GetPassName() == "Phong") {
 								auto ps = BindableManager::Query<PixelShader>(
 									step.GetPassName(), 
 									material.GetShaderEntryPoint());
@@ -114,33 +99,54 @@ namespace En3rN::DX
 							}
 				}
 				ImGui::Text("Teqniques:");
-				for(auto& teq : mesh.Teqniques()) {
-					change += ImGui::Checkbox(teq.GetName().c_str(), &teq.Active());
+				for(auto& teq : teqniques) {
+					if( ImGui::Checkbox(Helpers::tag(meshIndex,teq.GetName()).c_str(), &teq.Active()) ) {
+						
+						change = true;
+						std::stringstream l;
+						l << mesh.GetName() << ' ' << teq.GetName();
+						Logger::Debug( l.str().c_str() );
+					}
 				}
+				/*if( ImGui::Button( "AddTeqnique" ) ) {
+					ImGui::BeginChild( "TeqniqueSelector" );
+					auto teqIndex= ImGui::Combo( "Select", 1, teqniqueCombo.items.c_str() ) ) {
+						std::string teqName;
+						auto teq = Teqnique::Teqniques.begin();
+							mesh.AddTeqnique( Teqnique::Teqniques[ teqName ](),Scene::Materials);
+					}
+					ImGui::EndChild();
+				}*/
 			}
-				//teq.UIControls(); // TODO uicontrols
+			if(mrc.MeshIndecies.empty() )
+				for( auto& teq : mrc.Teqniques ) {
+					change += ImGui::Checkbox( teq.GetName().c_str(), &teq.Active() );
+					if( change ) {
+
+					}
+				}
+					
+				
 			return change;
 		}
-		auto UIControls(TransformComponent& tc)
+		bool UIControls(TransformComponent& tc)
 		{
-			static bool change = false;
+			bool change = false;
 			change += ImGui::DragFloat3("Position", tc.Position,.1f);
 			change += ImGui::DragFloat3("Angles", tc.Angles, .1f);
 			change += ImGui::DragFloat3("Scale", tc.Scale, .1f);
 			return change;
 		}
 
+		static Mesh::Container Meshes;
+		static Material::Container Materials;
+
 	private:
-		Entity CreateEntities(aiNode* node, Vec3f scale);
 		entt::registry m_registry;
-		Entity::Container m_entities;
-		Mesh::Container m_meshes;
-		Material::Container m_materials;
+		Entity::Container m_entities;		
 		Node::handle m_rootNode = std::make_unique<Node>("MyScene");
 		Camera::Container cameras;
-		//Light lights;
 		Model::Container models;
-		
 		Renderer* m_renderer;
 	};
 }

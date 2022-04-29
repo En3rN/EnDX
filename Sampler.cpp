@@ -15,13 +15,11 @@ namespace En3rN::DX
 		sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 		sampDesc.ComparisonFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_NEVER;
 		sampDesc.MaxAnisotropy = 16;
-		errchk::hres(pDevice->CreateSamplerState(&sampDesc, &pSampler));
+		errchk::hres(GetDevice()->CreateSamplerState(&sampDesc, &pSampler));
 	}
 	void Sampler::Bind()
 	{
-		if (IsBound())
-			return;
-		pContext->PSSetSamplers(0, 1, pSampler.GetAddressOf());
+		GetContext()->PSSetSamplers(0, 1, pSampler.GetAddressOf());
 	}
 	/*bool Sampler::IsBound()
 	{

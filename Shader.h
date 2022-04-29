@@ -44,7 +44,7 @@ namespace En3rN::DX
 		using handle = std::shared_ptr<PixelShader>;
 		PixelShader(std::filesystem::path filename) : Shader::Shader(filename)
 		{
-			errchk::hres(pDevice->CreatePixelShader(
+			errchk::hres(GetDevice()->CreatePixelShader(
 				shaderBlob->GetBufferPointer(),
 				shaderBlob->GetBufferSize(),
 				nullptr, &pPixelShader)
@@ -56,17 +56,12 @@ namespace En3rN::DX
 			using namespace std::string_literals;
 			std::filesystem::path hlslfile("PS"s + passName + ".hlsl"s);
 			std::filesystem::path csofile (Config::GetFolders().shaderFolder / ("PS" + passName + entryPoint + ".cso"s));
-
-			/*auto hlslLastWrite = std::filesystem::last_write_time(hlslfile);
-			auto csoLastWrite = std::filesystem::last_write_time(hlslfile);
-			try {
-				 csoLastWrite = std::filesystem::last_write_time(csofile);
-			}
-			catch(std::exception e) {
-				
-			}*/
-			
-			
+			UINT flags{};
+#ifdef _DEBUG
+			flags = D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#else
+			flags = D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_OPTIMIZATION_LEVEL3;
+#endif // DEBUG
 			ComPtr<ID3DBlob> errBlob;
 			HRESULT hres = D3DCompileFromFile(
 				hlslfile.wstring().c_str(),
@@ -74,17 +69,16 @@ namespace En3rN::DX
 				D3D_COMPILE_STANDARD_FILE_INCLUDE,	//include interface
 				entryPoint.c_str(),
 				"ps_5_0",
-				D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
+				flags,
 				NULL,
 				&shaderBlob,
 				&errBlob);
 			if(hres != S_OK)
 				throw EnExcept((char*)errBlob->GetBufferPointer());
-			errchk::hres(pDevice->CreatePixelShader(
+			errchk::hres(GetDevice()->CreatePixelShader(
 				shaderBlob->GetBufferPointer(),
 				shaderBlob->GetBufferSize(),
 				nullptr, &pPixelShader));
-
 		}
 		PixelShader() = default;
 		PixelShader(const PixelShader & other) = default;
@@ -94,11 +88,18 @@ namespace En3rN::DX
 		~PixelShader() = default;		
 		void Bind() override 
 		{
-			pContext->PSSetShader(pPixelShader.Get(), 0, 0);
+			GetContext()->PSSetShader(pPixelShader.Get(), 0, 0);
 		}
 		void Reflect() override;
 	private:
 		ComPtr<ID3D11PixelShader> pPixelShader;
+	};
+
+	class NullPixelShader : public PixelShader
+	{
+		void Bind() override { GetContext()->PSSetShader(nullptr, nullptr, 0); }
+		void Reflect() override{};
+
 	};
 	
 	class VertexShader : public Shader
@@ -107,7 +108,7 @@ namespace En3rN::DX
 		using handle = std::shared_ptr<VertexShader>;
 		VertexShader(std::string filename) : Shader::Shader(filename)
 		{			
-			errchk::hres(pDevice->CreateVertexShader(
+			errchk::hres(GetDevice()->CreateVertexShader(
 				shaderBlob->GetBufferPointer(),
 				shaderBlob->GetBufferSize(),
 				nullptr, 
@@ -116,20 +117,28 @@ namespace En3rN::DX
 		//PASS::GetPassName , Material::GetEntryPoint()
 		VertexShader(std::string passName, std::string entryPoint)
 		{
+			UINT flags{};
+#ifdef _DEBUG
+			flags = D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#else
+			flags = D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_OPTIMIZATION_LEVEL3;
+#endif // DEBUG
+			using namespace std::string_literals;
+			std::filesystem::path hlslfile("VS"s + passName + ".hlsl"s);
 			std::string filename("VS" + passName + ".hlsl");
 			ComPtr<ID3DBlob> errBlob;
 			errchk::hres(D3DCompileFromFile(
-				stringconverter::wstr(filename).c_str(),
+				hlslfile.wstring().c_str(),
 				nullptr,	//macro 
 				D3D_COMPILE_STANDARD_FILE_INCLUDE,	//include interface
 				entryPoint.c_str(),
 				"vs_5_0",
-				D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_DEBUG,
+				flags,
 				NULL,
 				&shaderBlob,
 				&errBlob));
 
-			errchk::hres(pDevice->CreateVertexShader(
+			errchk::hres(GetDevice()->CreateVertexShader(
 				shaderBlob->GetBufferPointer(),
 				shaderBlob->GetBufferSize(),
 				nullptr, &pVertexShader));
@@ -140,11 +149,69 @@ namespace En3rN::DX
 		VertexShader& operator = (const VertexShader & other) = default;
 		VertexShader& operator = (VertexShader && other) noexcept = default;
 		~VertexShader() = default;		
-		void Bind() override { pContext->VSSetShader(pVertexShader.Get(), 0, 0); }
+		void Bind() override { GetContext()->VSSetShader(pVertexShader.Get(), 0, 0); }
 		void Reflect() override;
 		std::vector<std::string> GetSignatures();
 
 	private:
 		ComPtr<ID3D11VertexShader> pVertexShader;
+	};
+	class ComputeShader : public Shader
+	{
+	public:
+		
+		using handle = std::shared_ptr<ComputeShader>;
+		ComputeShader(std::filesystem::path filename) : Shader::Shader(filename)
+		{
+			errchk::hres(GetDevice()->CreateComputeShader(
+				shaderBlob->GetBufferPointer(),
+				shaderBlob->GetBufferSize(),
+				nullptr, &pShader)
+			);
+		}
+		//PASS::GetPassName , Material::GetEntryPoint()
+		ComputeShader(std::string passName, std::string entryPoint)
+		{
+			using namespace std::string_literals;
+			std::filesystem::path hlslfile("PS"s + passName + ".hlsl"s);
+			std::filesystem::path csofile (Config::GetFolders().shaderFolder / ("PS" + passName + entryPoint + ".cso"s));
+			UINT flags{};
+#ifdef _DEBUG
+			flags = D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#else
+			flags = D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_OPTIMIZATION_LEVEL3;
+#endif // DEBUG
+			ComPtr<ID3DBlob> errBlob;
+			HRESULT hres = D3DCompileFromFile(
+				hlslfile.wstring().c_str(),
+				nullptr,	//macro 
+				D3D_COMPILE_STANDARD_FILE_INCLUDE,	//include interface
+				entryPoint.c_str(),
+				"cs_5_0",
+				flags,
+				NULL,
+				&shaderBlob,
+				&errBlob);
+			if(hres != S_OK)
+				throw EnExcept((char*)errBlob->GetBufferPointer());
+			errchk::hres(GetDevice()->CreateComputeShader(
+				shaderBlob->GetBufferPointer(),
+				shaderBlob->GetBufferSize(),
+				nullptr, &pShader));
+		}
+		ComputeShader() = default;
+		ComputeShader(const ComputeShader& other) = default;
+		ComputeShader(ComputeShader&& other) noexcept = default;
+		ComputeShader& operator = (const ComputeShader& other) = default;
+		ComputeShader& operator = (ComputeShader&& other) noexcept = default;
+		~ComputeShader() = default;
+		void Bind() override
+		{
+			GetContext()->CSSetShader(pShader.Get(), nullptr, 0);
+		}
+		void Reflect() override {}
+	private:
+		ComPtr<ID3D11ComputeShader> pShader;
+
 	};
 }

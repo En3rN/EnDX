@@ -44,36 +44,36 @@ namespace En3rN::DX
 		Logger::Debug(importer.GetErrorString());
 
 		for(auto i = 0u; i < scene->mNumMeshes; ++i)
-			m_meshes.push_back(scene->mMeshes[i]);
+			Meshes.push_back(scene->mMeshes[i]);
 		for(auto i = 0u; i < scene->mNumMaterials; ++i)
-			m_materials.push_back(scene->mMaterials[i]);
+			Materials.push_back(scene->mMaterials[i]);
 		m_rootNode = std::make_unique<Node>(scene->mRootNode, scale);
 	}
 	Model::Model(const aiScene* aiscene, const std::string& name, Vec3f scale) : m_name(name), m_controlWindow(false)
 	{
 		for (auto i = 0u; i < aiscene->mNumMeshes; ++i)
-			m_meshes.push_back(aiscene->mMeshes[i]);
+			Meshes.push_back(aiscene->mMeshes[i]);
 		for (auto i = 0u; i < aiscene->mNumMaterials; ++i)
-			m_materials.push_back(aiscene->mMaterials[i]);
+			Materials.push_back(aiscene->mMaterials[i]);
 		m_rootNode = std::make_unique<Node>(aiscene->mRootNode, scale);
-		AddTeqnique(Teqnique::Phong());
+		AddTeqnique(Teqnique("Phong",true));
 	}
 	void Model::Update(float dt)
 	{
-		for (auto& mesh : m_meshes)
+		for (auto& mesh : Meshes)
 			mesh.Update(dt);
 	}
 
 	void Model::CreateJobs(Renderer& renderer, Node& node)
 	{
 		for (auto& meshIndex : node.GetMeshIndecies()) {
-			auto& mesh = m_meshes[meshIndex];
-			auto& material = m_materials[mesh.GetMaterialIndex()];
+			auto& mesh = Meshes[meshIndex];
+			auto& material = Materials[mesh.GetMaterialIndex()];
 			for (auto& teq : mesh.GetTeqniques()){
 				if(teq.IsActive())
 					for (auto& step : teq.GetSteps()){
-						renderer.GetPass(step.GetRenderPassSlot()).AddJob(
-							Job(mesh, material, node.GetTransform(), step));
+						//renderer.GetPass(step.GetPassName()).AddJob(
+							//RenderJob(mesh, material, node.GetTransform(), step));
 					}
 			}
 		}
@@ -83,16 +83,16 @@ namespace En3rN::DX
 	}
 	void Model::AddMesh(Mesh&& mesh)
 	{
-		m_meshes.push_back(std::move(mesh));
+		Meshes.push_back(std::move(mesh));
 	}
 	void Model::AddMaterial(Material material)
 	{
-		m_materials.push_back(material);
+		Materials.push_back(material);
 	}
 	void Model::AddTeqnique(Teqnique teqnique)
 	{	
-		for (auto& mesh : m_meshes)
-			mesh.AddTeqnique(teqnique, m_materials);
+		for (auto& mesh : Meshes)
+			mesh.AddTeqnique(teqnique, Materials);
 	}
 	void Model::ApplyTransform(Vec3f position, Vec3f rotationAngles, Vec3f scale)
 	{
@@ -141,14 +141,14 @@ namespace En3rN::DX
 	}
 	Model::handle Model::LoadPrimitive()
 	{
-		Primitive factory;
-		return factory();
+		//Primitive factory;
+		return Model::handle();
 	}
 
 	bool Model::UIControls(Node* node)
 	{
 		for (auto index : node->GetMeshIndecies()) {
-			m_materials[m_meshes[index].GetMaterialIndex()].UIControls();
+			Materials[Meshes[index].GetMaterialIndex()].UIControls();
 		}
 
 		return false;

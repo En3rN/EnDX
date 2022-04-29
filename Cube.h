@@ -91,11 +91,11 @@ namespace En3rN::DX
 			AddBindable(BindableManager::Query<PixelShader>("Test.cso"));	//("PSSkybox.cso"));
 			AddBindable(BindableManager::Query<InputLayout>			(signatures, vs->GetBlob(),"cube"));
 			AddBindable(BindableManager::Query<VertexBuffer>		(buf,"cube"));
-			AddBindable(BindableManager::Query<IndexBuffer>			(buf.indecies(4), "cube"));
-			AddBindable(BindableManager::Query<Texture>				(std::filesystem::path("cube.png"),0, Texture::Type::CubeMap));
+			AddBindable(BindableManager::Query<IndexBuffer>			(indecies, "cube"));
+			AddBindable(BindableManager::Query<Texture>				(std::filesystem::path("cube.png"),0, Texture::Flag::CubeMap));
 			AddBindable(BindableManager::Query<Sampler>				(Sampler::State::Wrap));
 			AddBindable(BindableManager::Query<Rasterizer>			(Rasterizer::State::Back));
-			AddBindable(BindableManager::Query<Stencil>				(Stencil::State::DepthOnly));
+			AddBindable(BindableManager::Query<DepthStencilState>				(DepthStencilState::Depth::Enable));
 			AddBindable(BindableManager::Query<Transform::ConstantBuffer>	(1,1));
 			AddBindable(std::move(vs));
 			//behavior = Behaviors::Get(id);
@@ -113,8 +113,8 @@ namespace En3rN::DX
 		}
 		void Draw() override
 		{
-			pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-			pContext->DrawIndexed(indexCount, 0, 0);
+			GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			GetContext()->DrawIndexed(indexCount, 0, 0);
 		};
 	private:
 		Behaviors::Behavior behavior;

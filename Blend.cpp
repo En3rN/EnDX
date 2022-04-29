@@ -38,12 +38,12 @@ namespace En3rN::DX
 		}
 		for (UINT i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
 			blendDesc.RenderTarget[i] = rtbd;
-		errchk::hres(pDevice->CreateBlendState(&blendDesc, &pBlenderState));
+		errchk::hres(GetDevice()->CreateBlendState(&blendDesc, &pBlenderState));
 
 	}	
 	void Blender::Bind()
 	{
-		pContext->OMSetBlendState(pBlenderState.Get(), nullptr, 0xFFFFFFFF);
+		GetContext()->OMSetBlendState(pBlenderState.Get(), nullptr, 0xFFFFFFFF);
 
 	}
 }

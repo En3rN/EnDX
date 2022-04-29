@@ -7,17 +7,17 @@
 
 
 namespace En3rN::DX
-{
-	void PSConstantBuffer<Material::Data>::Update(const Job& job)
+{	
+	/*void PSConstantBuffer<Material::Data>::Update(const RenderJob& job)
 	{
 		Update(job.GetMaterial().GetData());
 		return;
 	}
 	
-	void VSConstantBuffer<Transform::Matrix>::Update(const Job& job)
+	void VSConstantBuffer<Transform::Matrix>::Update(const RenderJob& job)
 	{
 		return Update(DirectX::XMMatrixTranspose(job.GetTransform()));
-	}
+	}*/
 	
 }
 

@@ -102,8 +102,5 @@ namespace En3rN::DX
 		//remove from renderer
 	}
 
-	void PSConstantBuffer<Light::Data>::Update(const Job& job)
-	{
-		return;
-	}
+	
 }

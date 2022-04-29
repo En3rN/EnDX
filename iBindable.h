@@ -10,15 +10,7 @@
 
 
 namespace En3rN::DX
-{
-	class Buffer;
-	class Graphics;
-	class Keyboard;
-	class Mouse;
-	class DynamicBindable;
-	class Camera;
-	class BindableManager;	
-	class Job;
+{	
 	class Bindable : public GfxResources
 	{
 	public:
@@ -31,9 +23,11 @@ namespace En3rN::DX
 		Bindable() = default;
 		Bindable(const Bindable& other) = default;
 		Bindable(Bindable && other) noexcept = default;
-		virtual bool IsBound() { return false; }
+		Bindable& operator = (const Bindable& other) = default;
+		Bindable& operator = (Bindable&& other) noexcept = default;
+
+		//virtual Bindable::Base::handle Clone() = 0;
 		virtual void Bind() = 0;
-		virtual void Update(const Job& job) { return;}
 		virtual ~Bindable() = default;
 	protected:
 	};

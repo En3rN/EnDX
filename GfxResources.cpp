@@ -4,18 +4,20 @@
 
 
 namespace En3rN::DX
-{
-	GfxResources::GfxResources(){
-		Graphics& gfx = EnDX::Get().GetWindow().GetGfx();
-		pDevice = gfx.pDevice.Get();
-		pContext = gfx.pContext.Get();
+{	
+	Graphics& GfxResources::GetGfx() {
+		static Graphics& gfx = EnDX::Get().GetWindow().GetGfx();		
+		return gfx;
 	}
-	ID3D11DeviceContext& GfxResources::GetContext(){
-		Graphics& gfx =EnDX::Get().GetWindow().GetGfx();
-		return *gfx.pContext.Get();
+	ID3D11DeviceContext* GfxResources::GetContext(){
+		
+		return GetGfx().pContext.Get();
 	}
-	ID3D11Device& GfxResources::GetDevice(){
-		Graphics& gfx = EnDX::Get().GetWindow().GetGfx();
-		return *gfx.pDevice.Get();
-	}	
+	ID3D11Device* GfxResources::GetDevice(){
+		return GetGfx().pDevice.Get();
+	}
+	IDXGISwapChain* GfxResources::GetSwapChain() {
+		return GetGfx().pSwapChain.Get();
+	}
+
 }

@@ -13,7 +13,7 @@ namespace En3rN::DX
 		using handle = std::shared_ptr<InputLayout>;
 		InputLayout(std::vector<D3D11_INPUT_ELEMENT_DESC> ied, ID3DBlob* shaderBlob, const std::string& modelName)
 		{
-			errchk::hres(pDevice->CreateInputLayout(
+			errchk::hres(GetDevice()->CreateInputLayout(
 				ied.data(), std::size(ied),
 				shaderBlob->GetBufferPointer(),
 				shaderBlob->GetBufferSize(),
@@ -24,7 +24,7 @@ namespace En3rN::DX
 			std::vector<D3D11_INPUT_ELEMENT_DESC> ied{};
 			for (auto& signature : signatures)
 				ied.emplace_back(element_desc[signature]);
-			errchk::hres(pDevice->CreateInputLayout(
+			errchk::hres(GetDevice()->CreateInputLayout(
 				ied.data(), std::size(ied),
 				shaderBlob->GetBufferPointer(),
 				shaderBlob->GetBufferSize(),
@@ -44,7 +44,7 @@ namespace En3rN::DX
 		}
 		void Bind() override
 		{
-			pContext->IASetInputLayout(pInputLayout.Get());
+			GetContext()->IASetInputLayout(pInputLayout.Get());
 		}
 	private:
 		static std::map<std::string, D3D11_INPUT_ELEMENT_DESC> element_desc;

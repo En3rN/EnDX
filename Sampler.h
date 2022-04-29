@@ -1,5 +1,5 @@
 #pragma once
-#include "Drawable.h"
+#include "iBindable.h"
 #include "end3d11.h"
 
 namespace En3rN::DX
