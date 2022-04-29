@@ -71,8 +71,8 @@ namespace En3rN::DX
 	}
 	void Skybox::Draw()
     {
-        pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        pContext->DrawIndexed(indexCount, 0, 0);
+        GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        GetContext()->DrawIndexed(indexCount, 0, 0);
 	}
     void Skybox::Update(float dt)
     {

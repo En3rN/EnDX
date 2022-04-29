@@ -62,7 +62,7 @@ namespace En3rN::DX
 		tdesc.CPUAccessFlags = 0;
 		tdesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
-		errchk::hres(pDevice->CheckMultisampleQualityLevels(
+		errchk::hres(GetDevice()->CheckMultisampleQualityLevels(
 			tdesc.Format,
 			tdesc.SampleDesc.Count,
 			&tdesc.SampleDesc.Quality));
@@ -127,8 +127,8 @@ namespace En3rN::DX
 
 		}
 		ComPtr<ID3D11Resource> pResource;
-		errchk::hres(CreateTexture(pDevice, simg.GetImages(), simg.GetImageCount(), simg.GetMetadata(), &pResource));
-		errchk::hres(CreateShaderResourceView(pDevice, simg.GetImages(), simg.GetImageCount(), simg.GetMetadata(), &m_srv));		
+		errchk::hres(CreateTexture(GetDevice(), simg.GetImages(), simg.GetImageCount(), simg.GetMetadata(), &pResource));
+		errchk::hres(CreateShaderResourceView(GetDevice(), simg.GetImages(), simg.GetImageCount(), simg.GetMetadata(), &m_srv));
 	}
 	Texture::Texture(Resource resource, UINT slot, Flag flag, std::string_view tag ) : m_slot(slot)
 	{
@@ -153,9 +153,9 @@ namespace En3rN::DX
 				break;
 			ComPtr<ID3D11Buffer> tex;
 			tDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-			pDevice->CreateBuffer(&tDesc, nullptr, &tex);
+			GetDevice()->CreateBuffer(&tDesc, nullptr, &tex);
 			if(flag != Flag::NoCopy)
-				pContext->CopyResource(tex.Get(), resource.GetP());
+				GetContext()->CopyResource(tex.Get(), resource.GetP());
 			resource = Resource(std::move(tex));
 			break;
 		}
@@ -169,9 +169,9 @@ namespace En3rN::DX
 			
 			ComPtr<ID3D11Texture1D> tex;
 			tDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-			pDevice->CreateTexture1D(&tDesc, nullptr, &tex);
+			GetDevice()->CreateTexture1D(&tDesc, nullptr, &tex);
 			if(flag != Flag::NoCopy)
-				pContext->CopyResource(tex.Get(), resource.GetP());
+				GetContext()->CopyResource(tex.Get(), resource.GetP());
 			resource = Resource(std::move(tex));
 			break;
 		}
@@ -184,9 +184,9 @@ namespace En3rN::DX
 				break;
 			ComPtr<ID3D11Texture2D> tex;
 			tDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-			pDevice->CreateTexture2D(&tDesc, nullptr, &tex);
+			GetDevice()->CreateTexture2D(&tDesc, nullptr, &tex);
 			if(flag != Flag::NoCopy)
-				pContext->CopyResource(tex.Get(), resource.GetP());
+				GetContext()->CopyResource(tex.Get(), resource.GetP());
 			resource = Resource(std::move(tex));
 			break;
 		}
@@ -199,9 +199,9 @@ namespace En3rN::DX
 				break;
 			tDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 			ComPtr<ID3D11Texture3D> tex;
-			pDevice->CreateTexture3D(&tDesc, nullptr, &tex);
+			GetDevice()->CreateTexture3D(&tDesc, nullptr, &tex);
 			if(flag!=Flag::NoCopy) 
-				pContext->CopyResource(tex.Get(), resource.GetP());
+				GetContext()->CopyResource(tex.Get(), resource.GetP());
 			resource = Resource(std::move(tex));
 			break;
 		}
@@ -209,7 +209,7 @@ namespace En3rN::DX
 			break;
 		}
 
-		errchk::hres(pDevice->CreateShaderResourceView(resource.GetP(), &srvDesc, &m_srv));
+		errchk::hres(GetDevice()->CreateShaderResourceView(resource.GetP(), &srvDesc, &m_srv));
 	}
 	
 	Resource Texture::GetResource()
@@ -226,6 +226,6 @@ namespace En3rN::DX
 	
 	void Texture::Bind()
 	{
-		pContext->PSSetShaderResources(m_slot, 1, m_srv.GetAddressOf());
+		GetContext()->PSSetShaderResources(m_slot, 1, m_srv.GetAddressOf());
 	}
 }

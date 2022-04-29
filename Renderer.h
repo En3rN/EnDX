@@ -7,21 +7,22 @@
 
 namespace En3rN::DX
 {
-	class Renderer
+	class Renderer : public GfxResources
 	{
 	public:
-		Renderer(Graphics& gfx);
-		template <typename ... Passes>
-		Renderer(Graphics& gfx , Passes ... passes) {AddPass((passes)...);}
+		Renderer();
 		Renderer(const Renderer& other) = default;
 		Renderer(Renderer&& other) noexcept = default;
 		Renderer& operator=(const Renderer& other) = default;
 		Renderer& operator=(Renderer&& other)noexcept = default;
-		~Renderer() = default;
+		template <typename ... Passes>
+		Renderer(Passes ... passes){
+			AddPass((passes)...)
+		;}
+		~Renderer() noexcept = default;
 
 		RenderPass& GetPass(const std::string& passName);
-		RenderTarget& GetRenderTarget(const std::string& rtName);
-		ID3D11DeviceContext* GetContext() { return m_context; }
+		RenderTarget& GetRenderTarget(const std::string& rtName);		
 
 		void AddRenderTarget(const RenderTarget& renderTarget);
 		void AddPass(std::unique_ptr<RenderPass>&& pass);
@@ -35,10 +36,6 @@ namespace En3rN::DX
 		void Draw();
 
 	private:
-		ID3D11DeviceContext* m_context;
-		IDXGISwapChain* m_swapChain;
-		D3D11_VIEWPORT m_viewPorts[8]{};
-		D3D11_RECT m_scissorRect[8]{};
 		
 		RenderTarget::Container m_renderTargets;
 		DepthStencil::Container	m_depthStencils;

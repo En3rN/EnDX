@@ -205,19 +205,25 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Application.h" />
     <ClInclude Include="Behavior.h" />
     <ClInclude Include="Blend.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="Config.h" />
-    <ClInclude Include="Container.h" />
+    <ClInclude Include="Container.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="Context.h" />
     <ClInclude Include="Controllable.h" />
     <ClInclude Include="Cube.h" />
     <ClInclude Include="DepthStencil.h" />
     <ClInclude Include="Device.h" />
     <ClInclude Include="Drawable.h" />
+    <ClInclude Include="Helpers.h" />
+    <ClInclude Include="MyGui.h" />
     <ClInclude Include="OutlineBlurPass.h" />
     <ClInclude Include="enBuffer.h" />
     <ClInclude Include="end3d11.h" />
@@ -234,6 +240,7 @@
     <ClInclude Include="enexception.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="iHandle.h" />
+    <ClInclude Include="Probe.h" />
     <ClInclude Include="Render.h" />
     <ClInclude Include="RenderTarget.h" />
     <ClInclude Include="Resource.h" />
@@ -288,18 +295,19 @@
     <ClInclude Include="WindowsMessageMap.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Application.cpp" />
     <ClCompile Include="Behavior.cpp" />
     <ClCompile Include="Blend.cpp" />
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="Config.cpp" />
-    <ClCompile Include="Container.cpp" />
     <ClCompile Include="Context.cpp" />
     <ClCompile Include="Controllable.cpp" />
     <ClCompile Include="DepthStencil.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="Drawable.cpp" />
+    <ClCompile Include="MyGui.cpp" />
     <ClCompile Include="OutlineBlurPass.cpp" />
     <ClCompile Include="enBuffer.cpp" />
     <ClCompile Include="EnDX.cpp" />
@@ -323,6 +331,7 @@
     <ClCompile Include="Pass.cpp" />
     <ClCompile Include="Plane.cpp" />
     <ClCompile Include="Primitive.cpp" />
+    <ClCompile Include="Probe.cpp" />
     <ClCompile Include="Rasterizer.cpp" />
     <ClCompile Include="RecT.cpp" />
     <ClCompile Include="Renderer.cpp" />

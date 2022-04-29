@@ -1,11 +1,9 @@
 #include "Stencil.h"
 #include "enexception.h"
 
-namespace En3rN::DX
-{
-	DepthStencilState::DepthStencilState(Depth depth, Stencil stencil, UINT stencilRef ) :
-		m_depth(depth), m_stencil(stencil),m_ref(stencilRef)
-	{
+namespace En3rN::DX {
+	DepthStencilState::DepthStencilState( Depth depth, Stencil stencil, UINT stencilRef ) :
+		m_depth( depth ), m_stencil( stencil ), m_ref( stencilRef ) {
 		D3D11_DEPTH_STENCIL_DESC desc{};
 		desc.DepthEnable = TRUE;
 		desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK::D3D11_DEPTH_WRITE_MASK_ALL;
@@ -23,8 +21,7 @@ namespace En3rN::DX
 		desc.FrontFace.StencilFailOp = D3D11_STENCIL_OP::D3D11_STENCIL_OP_KEEP;
 		desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP::D3D11_STENCIL_OP_KEEP;
 
-		switch(depth)
-		{
+		switch( depth ) {
 		case En3rN::DX::DepthStencilState::Depth::Enable:
 			break;
 		case En3rN::DX::DepthStencilState::Depth::Disable:
@@ -37,14 +34,14 @@ namespace En3rN::DX
 		default:
 			break;
 		}
-		
-		switch(stencil)
-		{
+
+		switch( stencil ) {
 		case En3rN::DX::DepthStencilState::Stencil::Disable:
 			break;
 		case En3rN::DX::DepthStencilState::Stencil::Read:
 			desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
 			desc.StencilEnable = TRUE;
+			desc.StencilWriteMask = 0;
 			desc.FrontFace.StencilFunc = D3D11_COMPARISON_NOT_EQUAL;
 			desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
 			desc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
@@ -60,10 +57,9 @@ namespace En3rN::DX
 			break;
 		}
 
-		errchk::hres(pDevice->CreateDepthStencilState(&desc, &pStencilState));
+		errchk::hres(GetDevice()->CreateDepthStencilState( &desc, &pStencilState ) );
 	}
-	void DepthStencilState::Bind()
-	{
-		pContext->OMSetDepthStencilState(pStencilState.Get(), m_ref);
+	void DepthStencilState::Bind() {
+		GetContext()->OMSetDepthStencilState( pStencilState.Get(), m_ref );
 	}
 }

@@ -13,6 +13,7 @@
 #include "enexception.h"
 #include "Component.h"
 #include "TransformConstantBufferScaling.h"
+#include "MyGui.h"
 
 #include <filesystem>
 #include <memory>
@@ -74,18 +75,18 @@ namespace En3rN::DX
 				std::make_shared<TransformConstantBufferScaling>(1.05f)				
 			),
 			Step({ "FullScreen","DrawOutline" },
-				BindableManager::Query<NullPixelShader>(),	//HACK --> To avoid mesh.Addbindable to insert shader based on pass and material
+				BindableManager::Query<NullPixelShader>(),	//HACK --> To avoid mesh.Addbindable to insert shader based on pass and material, fullscreen pass will bind correct shader
 				BindableManager::Query<DepthStencilState>(DepthStencilState::Depth::Disable, DepthStencilState::Stencil::Read, 1),
 				BindableManager::Query<Blender>(Blender::State::Enabled)
 			));
 		Outline.Context([](auto& context) {
 			Vec3f color{ 1,0,0 };
 			context.add_element(color, "Color");			
-			});
-
-		auto test = Teqnique::Teqniques.find( "Outline" );
-		auto func = Teqnique::Teqniques[ "Outline" ];
-		auto teq = func();
+			}
+		);
+		
+		auto& outlineTeqFunc = Teqnique::Teqniques[ "Outline" ];
+		
 		
 				
 
@@ -99,14 +100,14 @@ namespace En3rN::DX
 		ambientDirectionPointlight.AddComponent<PointLightComponent>();
 		ambientDirectionPointlight.AddComponent<AmbientLightComponent>();
 		ambientDirectionPointlight.SetName("Lights");
-		auto mrc = ModelRendererComponent("primitive/sphere.obj",{Unlit, func()});
+		auto mrc = ModelRendererComponent("primitive/sphere.obj",{Unlit, outlineTeqFunc()});
 		ambientDirectionPointlight.AddComponent<ModelRendererComponent>(std::move(mrc));
 		
 		auto& gobber = CreateEntity("Gobber");
 		tc = TransformComponent();
 		tc.Scale = { .5f,.5f,.5f };
 		gobber.AddComponent<TransformComponent>(std::move(tc));
-		mrc = ModelRendererComponent("gobber/gobber.obj", {  Phong , Debug, func()});
+		mrc = ModelRendererComponent("gobber/gobber.obj", {  Phong , Debug, outlineTeqFunc()});
 		gobber.AddComponent<ModelRendererComponent>(std::move(mrc));
 		
 		auto& Pointlight2 = CreateEntity();
@@ -116,7 +117,7 @@ namespace En3rN::DX
 		Pointlight2.AddComponent<TransformComponent>(std::move(tc));
 		Pointlight2.AddComponent<PointLightComponent>();
 		Pointlight2.SetName("Lights");
-		mrc = ModelRendererComponent("primitive/sphere.obj",{ Unlit ,func()});
+		mrc = ModelRendererComponent("primitive/sphere.obj",{ Unlit ,outlineTeqFunc()});
 		Pointlight2.AddComponent<ModelRendererComponent>(std::move(mrc));
 
 		auto& SpotLight = CreateEntity("SpotLight");
@@ -126,7 +127,7 @@ namespace En3rN::DX
 		tc.Angles = { -1,0,0 };
 		SpotLight.AddComponent<TransformComponent>(std::move(tc));
 		SpotLight.AddComponent<SpotLightComponent>();
-		mrc = ModelRendererComponent("primitive/sphere.obj",{ Unlit,func()});
+		mrc = ModelRendererComponent("primitive/sphere.obj",{ Unlit,outlineTeqFunc()});
 		SpotLight.AddComponent<ModelRendererComponent>(std::move(mrc));
 
 		auto& cubeBrick = CreateEntity();
@@ -134,7 +135,7 @@ namespace En3rN::DX
 		tc=TransformComponent();
 		tc.Position = { 0,0,10 };
 		cubeBrick.AddComponent<TransformComponent>(std::move(tc));
-		mrc = ModelRendererComponent("primitive/cube.obj", { Phong , Debug, func()});
+		mrc = ModelRendererComponent("primitive/cube.obj", { Phong , Debug, outlineTeqFunc()});
 		cubeBrick.AddComponent<ModelRendererComponent>(std::move(mrc));
 
 
@@ -328,6 +329,7 @@ namespace En3rN::DX
 		
 		
 		
+		
 
 
 
@@ -355,7 +357,33 @@ namespace En3rN::DX
 
 	void En3rN::DX::Scene::Draw()
 	{
+		static auto dF= [&]( entt::registry& registry, entt::entity& selectedEntity ) {
+			auto entitySelector = []( auto& entityContainer, auto entity ) {
+				static EntityTreeProbe p;
+				p.selected = entity;
+				for( auto& entity : entityContainer ) {
+					p.Visit( entity );
+				}
+				return p;
+			};
+			auto p = entitySelector( m_entities, selectedEntity );
+			entt::entity selected = p.selected;			
+			selectedEntity = selected;
+			return selected == selectedEntity;
+		};
+		static MyGuI::WindowComponent windowcomponent{};
+		windowcomponent.DrawFunc = dF;
+		static MyGuI::WindowComponent ex{};
+		ex.DrawFunc = [&]( entt::registry& registry, entt::entity& selectedEntity ) {
+			
+			return true;
+		};
 		UIControls();
+		static MyGuI mygui( { m_registry,"EntitySelector" }, windowcomponent );
+		static MyGuI property( { m_registry, "Property Editor" }, ex );
+		//mygui.AddMyGuIWindow( std::move( example ));
+		//mygui.Draw();
+		
 		auto view = m_registry.view<ModelRendererComponent, TransformComponent>();
 		for(auto [entt, mrc, transform] : view.each()) {
 			for(auto& meshIndex : mrc.MeshIndecies){
@@ -384,6 +412,26 @@ namespace En3rN::DX
 			std::string items;
 			uint32_t	count{};
 		};
+		//uses .GetName()
+		auto comboParamBuilder = []( const auto& container ) {
+			ComboParam combo;
+			for( auto item : container ) {
+				combo.items += item.GetName() + '\0';
+				++combo.count;
+			}
+			return combo;
+		};
+		//uses ->GetName()
+		auto comboParamBuilderPtr = []( const auto& container ) {
+			ComboParam combo;
+			for( auto item : container ) {
+				combo.items += item->GetName() + '\0';
+				++combo.count;
+			}
+			return combo;
+		};
+
+
 		//windows
 		static bool ImGuiOn = true;
 		static bool dockSpace = true;
@@ -394,8 +442,7 @@ namespace En3rN::DX
 
 		//scene window vars
 		static Model* selectedModel = nullptr;
-		//static int selectedModel;
-		static int selectedLight;
+		//static int selectedModel;		
 		static int selectedCamera;
 		static Node* selectedNode = m_rootNode.get();
 		static ComboParam modelCombo;
@@ -460,72 +507,38 @@ namespace En3rN::DX
 
 				if(!cameras.empty())
 					cameras[selectedCamera].UIControls();
-				if(ImGui::Combo("Lights", &selectedLight, cameraCombo.items.c_str())) {}
 				
 				selectedEntity= entitySelector(selectedEntity);
-
-				//selectedNode = m_rootNode->UITree();
-				
 				ImGui::End();
 			}
 			if(modelControlWindow) {
 				ImGui::Begin("Properties", &modelControlWindow);
-				if(selectedNode) {					
-					modelSelector(selectedNode);
-					if(selectedModel)
-						selectedModel->UIControls(selectedNode);
-				}
+				
 				if(m_registry.valid(selectedEntity))
 				{
 					auto transform = m_registry.try_get<TransformComponent>(selectedEntity);
 					if(transform)
 						if(UIControls(*transform))
-							m_registry.patch<TransformComponent>(selectedEntity, [](TransformComponent& tc) {});
+							m_registry.patch<TransformComponent>(selectedEntity, [](auto& component) {});
 
 					auto components = m_registry.try_get<
 						AmbientLightComponent,
 						DirectionalLightComponent,
 						PointLightComponent, 
 						SpotLightComponent,
-						Transform,
-						ModelRendererComponent>(selectedEntity);					
-					unpackTuple(components);	
+						ModelRendererComponent>(selectedEntity);
+					std::apply(
+						[&](auto& ... ts){
+						UIComponents( ts ... );
+						}, components );
+					
 				}
 				ImGui::End();
 			}
 		}
 		return false;
 	}
-
-	/*Entity Scene::CreateEntities(aiNode* node, Vec3f scale)
-	{
-		uint32_t startSlotMeshes = m_meshes.size();
-		
-		auto e = Entity(m_registry, node->mName.C_Str());
-		TransformComponent tc;
-		tc.Scale = scale;
-
-		if(node->mTransformation.IsIdentity())
-			tc.Transform = Transform::GetMatrix(tc.Position, tc.Angles, tc.Scale);
-		else
-			tc.Transform = tc.Transform * Transform::GetMatrix(tc.Position, tc.Angles, tc.Scale);
-		e.AddComponent<TransformComponent>(std::move(tc));
-
-		ModelRendererComponent mrc;
-		for(auto i = 0; i < node->mNumMeshes; ++i)
-		{
-			mrc.Meshes.push_back(node->mMeshes[i]+startSlotMeshes);		
-		};
-		e.AddComponent<ModelRendererComponent>(std::move(mrc));
-		for(auto i = 0; i < node->mNumChildren; ++i)
-			e.AddChild(CreateEntities(node->mChildren[i], scale));
-		return e;
-	}*/
-	
 }
 
-/*if (ImGui::DragFloat3("Pos:x,y,z", model , 0.05f, -1000.0f,1000.0f)){}
-		if (ImGui::DragFloat3("Rotation:x,y,z", ent->GetAngles(), 0.05f,-maxangle, maxangle)) {}
-		if (ImGui::DragFloat3("Scale:x,y,z", ent->GetScale(), 0.05f, -1000.0f, 1000.0f)) {}
-		if (ImGui::DragFloat("Length", &length,0.05f,-1000.0f,1000.0f)) {}*/
+
 

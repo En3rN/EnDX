@@ -3,6 +3,7 @@
 #include "Transform.h"
 #include "Component.h"
 #include "entt\entt.hpp"
+#include "Probe.h"
 #include <string>
 #include <assimp\scene.h>
 
@@ -25,22 +26,24 @@ namespace En3rN::DX
 		Entity& operator = (Entity&& other) noexcept = default;
 
 		const std::string& GetName() const;
-		
-		void SetName(std::string&& name);
-
-		bool operator == (entt::entity entt) {
-			return m_handle.entity() == entt;
+		Entity::Container& GetChilds();
+		const Entity::Container& GetChilds() const;
+		const auto GetUid() {
+			return GetComponent<UIDComponent>().uId;
 		}
+		
+
+		void SetName(std::string&& name);
 		template <class Component, typename ... Constructorargs>
 		void AddComponent(Constructorargs ... args)
 		{
 			m_handle.emplace<Component>(args ...);
 		}
 		void AddChild(Entity&& entity);
-		template <class T>
-		T& GetComponent()
+		template <class Element>
+		Element& GetComponent()
 		{
-			return m_handle.get<T>();
+			return m_handle.get<Element>();
 		}
 		template <typename ... Ts>
 		auto GetComponents()
@@ -58,8 +61,6 @@ namespace En3rN::DX
 			}
 			return nullptr;
 		}
-		Entity::Container& GetChilds();
-		const Entity::Container& GetChilds() const;
 		template<typename Component>
 		void OnUpdate() {
 			return;
@@ -76,18 +77,32 @@ namespace En3rN::DX
 		void OnUpdate<ModelRendererComponent>() {
 
 		}
+		//probe must implement bool Visit(Entity&) return true to also vistit childs;
+		template <typename Probe>
+		void Accept( Probe& probe ){
+			if( probe.Visit( *this ) ) {
+				for( auto& entity : m_children )
+					entity.Accept( probe );
+			}
+		}
+
+
 		entt::entity UISelector(entt::entity selected);
-		auto UIControls();
-		
+
 		virtual ~Entity() = default;
+		bool operator == (entt::entity entt) {
+			return m_handle.entity() == entt;
+		}
+		operator entt::entity () {
+			return m_handle.entity();
+		}
 	protected:
 		void UpdateConstantBuffer(const Transform::Matrix& mat);
 		void SetParentTransform(const Transform::Matrix& mat);
 		size_t GenerateUID();
 		entt::handle    m_handle;
 		bool ui_open = false;
+	private:
 		Entity::Container m_children;
 	};
-	
-
 }

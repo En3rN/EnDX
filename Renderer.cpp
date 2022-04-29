@@ -14,16 +14,17 @@
 
 namespace En3rN::DX
 {
-	Renderer::Renderer(Graphics& gfx): 
-		m_context(gfx.pContext.Get()) , 
-		m_swapChain(gfx.pSwapChain.Get())
+	Renderer::Renderer()
 	{
+		
+		auto& gfx = GetGfx();
 		auto bId = std::string("BackBuffer");
-		auto desc = std::get<2>(gfx.GetBackBuffer().GetDesc());
+		auto backbuffer = gfx.GetBackBuffer();
+		auto desc = std::get<2>(backbuffer.GetDesc());
 		auto outLine = std::string("Outline");
 				
-		m_renderTargets.push_back(RenderTarget(bId,gfx.GetBackBuffer()));
-		m_renderTargets.push_back(RenderTarget(outLine, desc.Width, desc.Height,true));
+		AddRenderTarget(RenderTarget(bId,gfx.GetBackBuffer()));
+		AddRenderTarget(RenderTarget(outLine, desc.Width, desc.Height,true));
 		m_depthStencils.push_back(DepthStencil(desc.Width, desc.Height));
 
 		RenderTarget::Container backBuffer = { GetRenderTarget(bId) };
@@ -39,7 +40,7 @@ namespace En3rN::DX
 	}
 	RenderPass& En3rN::DX::Renderer::GetPass(const std::string& passName)
 	{
-		auto result = std::find_if(begin(m_passes), end(m_passes), [&](const auto& pass) {
+		auto result = std::ranges::find_if(m_passes, [&](const auto& pass) {
 			return pass->GetName() == passName;
 			});
 		if(result != end(m_passes))
@@ -50,7 +51,7 @@ namespace En3rN::DX
 
 	RenderTarget& Renderer::GetRenderTarget(const std::string& rtName)
 	{
-		auto result = std::find_if(begin(m_renderTargets), end(m_renderTargets), [&](const auto& rt) {
+		auto result = std::ranges::find_if(m_renderTargets, [&](const auto& rt) {
 			return rt.GetName() == rtName;
 			});
 		if(result != end(m_renderTargets))
@@ -78,8 +79,8 @@ namespace En3rN::DX
 	void En3rN::DX::Renderer::Draw()
 	{
 		auto execute = [&](RenderPass& pass) {
-			auto& rtvs = pass.GetRTVs();
-			m_context->OMSetRenderTargets(rtvs.size(), rtvs.data(), pass.GetDSV());
+			auto& rtvs = pass.GetRTVs();			
+			GetContext()->OMSetRenderTargets(rtvs.size(), rtvs.data(), pass.GetDSV());
 			for (auto& job : pass.GetJobs()){
 				auto& mesh = job.GetMesh();
 				auto& material = job.GetMaterial();
@@ -88,7 +89,7 @@ namespace En3rN::DX
 				for (auto& bindable : job.GetStep().GetBindables()){
 					bindable->Bind();
 				}
-				m_context->DrawIndexed(mesh.GetIndexBuffer()->GetCount(), 0, 0);
+				GetContext()->DrawIndexed(mesh.GetIndexBuffer()->GetCount(), 0, 0);
 			};
 			pass.GetJobs().clear();
 		};
@@ -106,17 +107,17 @@ namespace En3rN::DX
 				m_viewPorts[i].Height = desc.Height;
 				m_viewPorts[i].MaxDepth = 1;
 			}
-			m_context->OMSetRenderTargets(rtvs.size(), rtvs.data(), pass->GetDSV());
-			m_context->RSSetViewports(8, m_viewPorts);
+			GetContext()->OMSetRenderTargets(rtvs.size(), rtvs.data(), pass->GetDSV());
+			GetContext()->RSSetViewports(8, m_viewPorts);
 			pass->Execute(*this); 
 		};
 		auto executePass = [&](auto& pass) {
-			pass->SetRenderTargets(m_context);
+			pass->SetRenderTargets();
 			pass->Bind();
 			pass->Execute(*this);
 		};
-		std::for_each(begin(m_renderTargets), end(m_renderTargets), callClear);
-		std::for_each(begin(m_depthStencils), end(m_depthStencils), callClear);
-		std::for_each(begin(m_passes),end(m_passes), executePass);		
+		std::ranges::for_each( m_renderTargets ,callClear);
+		std::ranges::for_each( m_depthStencils, callClear );
+		std::ranges::for_each( m_passes, executePass );
 	}
 }

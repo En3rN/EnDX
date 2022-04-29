@@ -83,6 +83,7 @@ namespace En3rN::DX
 		return EnDX::Get().GetWindow().eventHandler;
 	}
 	Graphics& Window::GetGfx(){
+		assert( pGfx );  //Graphics not initialized
 		return *pGfx.get();
 	}
 	Keyboard& Window::GetKbd(){

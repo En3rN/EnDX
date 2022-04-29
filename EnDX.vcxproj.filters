@@ -147,6 +147,9 @@
     <Filter Include="Graphics\Scene\Entity\Drawable\Bindable\ScopedBinder">
       <UniqueIdentifier>{2283b4f6-4c33-4390-a575-e8d36a209b69}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MyGui">
+      <UniqueIdentifier>{e9410013-1a87-4036-9351-927c4801866c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Shader.h">
@@ -392,6 +395,18 @@
     <ClInclude Include="ScopedBinder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Application.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Probe.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MyGui.h">
+      <Filter>MyGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Helpers.h">
+      <Filter>Common\Util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="EnDX.cpp">
@@ -559,9 +574,6 @@
     <ClCompile Include="Tex2D.cpp">
       <Filter>Graphics\Engine\Resources</Filter>
     </ClCompile>
-    <ClCompile Include="Container.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ViewPort.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -575,7 +587,16 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TransformConstantBufferScaling.cpp">
+      <Filter>Graphics\Scene\Entity\Drawable\Bindable\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Application.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Probe.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MyGui.cpp">
+      <Filter>MyGui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

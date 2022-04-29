@@ -10,7 +10,7 @@ namespace En3rN::DX
 		Teapot()
 		{
 			using namespace DirectX;
-			GeometricPrimitive::CreateTeapot(pContext);
+			GeometricPrimitive::CreateTeapot(GetContext());
 		}
 
 	};

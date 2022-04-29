@@ -24,7 +24,8 @@ namespace En3rN::DX
 		for (auto i = 0; i < aimesh->GetNumUVChannels(); ++i) {
 			if (aimesh->HasTextureCoords(i)) {
 				std::string semantic("TexCoord[" + std::to_string(i) + ']');
-				m_buffer.add_element(aimesh->mTextureCoords[i], semantic, aimesh->mNumVertices, sizeof(aiVector3D));
+				auto tcords = aimesh->mTextureCoords[ i ];
+				m_buffer.add_element( aimesh->mTextureCoords[ i ], semantic , aimesh->mNumVertices, sizeof(aiVector3D));
 			}
 		}
 

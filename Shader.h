@@ -44,7 +44,7 @@ namespace En3rN::DX
 		using handle = std::shared_ptr<PixelShader>;
 		PixelShader(std::filesystem::path filename) : Shader::Shader(filename)
 		{
-			errchk::hres(pDevice->CreatePixelShader(
+			errchk::hres(GetDevice()->CreatePixelShader(
 				shaderBlob->GetBufferPointer(),
 				shaderBlob->GetBufferSize(),
 				nullptr, &pPixelShader)
@@ -75,7 +75,7 @@ namespace En3rN::DX
 				&errBlob);
 			if(hres != S_OK)
 				throw EnExcept((char*)errBlob->GetBufferPointer());
-			errchk::hres(pDevice->CreatePixelShader(
+			errchk::hres(GetDevice()->CreatePixelShader(
 				shaderBlob->GetBufferPointer(),
 				shaderBlob->GetBufferSize(),
 				nullptr, &pPixelShader));
@@ -88,7 +88,7 @@ namespace En3rN::DX
 		~PixelShader() = default;		
 		void Bind() override 
 		{
-			pContext->PSSetShader(pPixelShader.Get(), 0, 0);
+			GetContext()->PSSetShader(pPixelShader.Get(), 0, 0);
 		}
 		void Reflect() override;
 	private:
@@ -97,7 +97,7 @@ namespace En3rN::DX
 
 	class NullPixelShader : public PixelShader
 	{
-		void Bind() override { pContext->PSSetShader(nullptr, nullptr, 0); }
+		void Bind() override { GetContext()->PSSetShader(nullptr, nullptr, 0); }
 		void Reflect() override{};
 
 	};
@@ -108,7 +108,7 @@ namespace En3rN::DX
 		using handle = std::shared_ptr<VertexShader>;
 		VertexShader(std::string filename) : Shader::Shader(filename)
 		{			
-			errchk::hres(pDevice->CreateVertexShader(
+			errchk::hres(GetDevice()->CreateVertexShader(
 				shaderBlob->GetBufferPointer(),
 				shaderBlob->GetBufferSize(),
 				nullptr, 
@@ -138,7 +138,7 @@ namespace En3rN::DX
 				&shaderBlob,
 				&errBlob));
 
-			errchk::hres(pDevice->CreateVertexShader(
+			errchk::hres(GetDevice()->CreateVertexShader(
 				shaderBlob->GetBufferPointer(),
 				shaderBlob->GetBufferSize(),
 				nullptr, &pVertexShader));
@@ -149,7 +149,7 @@ namespace En3rN::DX
 		VertexShader& operator = (const VertexShader & other) = default;
 		VertexShader& operator = (VertexShader && other) noexcept = default;
 		~VertexShader() = default;		
-		void Bind() override { pContext->VSSetShader(pVertexShader.Get(), 0, 0); }
+		void Bind() override { GetContext()->VSSetShader(pVertexShader.Get(), 0, 0); }
 		void Reflect() override;
 		std::vector<std::string> GetSignatures();
 
@@ -163,7 +163,7 @@ namespace En3rN::DX
 		using handle = std::shared_ptr<ComputeShader>;
 		ComputeShader(std::filesystem::path filename) : Shader::Shader(filename)
 		{
-			errchk::hres(pDevice->CreateComputeShader(
+			errchk::hres(GetDevice()->CreateComputeShader(
 				shaderBlob->GetBufferPointer(),
 				shaderBlob->GetBufferSize(),
 				nullptr, &pShader)
@@ -194,7 +194,7 @@ namespace En3rN::DX
 				&errBlob);
 			if(hres != S_OK)
 				throw EnExcept((char*)errBlob->GetBufferPointer());
-			errchk::hres(pDevice->CreateComputeShader(
+			errchk::hres(GetDevice()->CreateComputeShader(
 				shaderBlob->GetBufferPointer(),
 				shaderBlob->GetBufferSize(),
 				nullptr, &pShader));
@@ -207,7 +207,7 @@ namespace En3rN::DX
 		~ComputeShader() = default;
 		void Bind() override
 		{
-			pContext->CSSetShader(pShader.Get(), nullptr, 0);
+			GetContext()->CSSetShader(pShader.Get(), nullptr, 0);
 		}
 		void Reflect() override {}
 	private:

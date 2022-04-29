@@ -11,11 +11,8 @@ namespace En3rN::DX
 
 		Topology(D3D11_PRIMITIVE_TOPOLOGY topology) : m_topology(topology) {};
 		void Bind() override
-		{
-			D3D11_PRIMITIVE_TOPOLOGY current;
-			pContext->IAGetPrimitiveTopology(&current);
-			if(current!=m_topology)
-				pContext->IASetPrimitiveTopology(m_topology);
+		{			
+			GetContext()->IASetPrimitiveTopology(m_topology);
 			return;
 		}
 	private:

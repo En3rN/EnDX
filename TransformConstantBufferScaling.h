@@ -14,9 +14,9 @@ namespace En3rN::DX
 			//data = DirectX::XMMatrixTranspose(data);
 
 			D3D11_MAPPED_SUBRESOURCE msr{};
-			errchk::hres(pContext->Map(pBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
+			errchk::hres(GetContext()->Map(pBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
 			memcpy(msr.pData, &data, sizeof(data) * count);
-			pContext->Unmap(pBuffer.Get(), 0);
+			GetContext()->Unmap(pBuffer.Get(), 0);
 		}
 
 	private:

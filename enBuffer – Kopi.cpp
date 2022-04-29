@@ -90,10 +90,6 @@ namespace En3rN::DX
             create_buffer();
          return m_buffer.data();
     }
-    void enBuffer::clear() {
-        m_buffer.clear();
-        m_elements.clear();
-    }
     enBuffer::Element& enBuffer::operator[](const std::string& semantic)
     {
         auto it = std::find_if(begin(m_elements), end(m_elements), [&](const auto& element) {

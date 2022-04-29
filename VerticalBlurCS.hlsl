@@ -66,5 +66,5 @@ void main(int3 groupThreadID : SV_GroupThreadID, int3 dispatchThreadID : SV_Disp
 	
 	gOutput[dispatchThreadID.xy] = blurColor;
 
-    gOutput[dispatchThreadID.xy] = gInput[dispatchThreadID.xy];
+    //gOutput[dispatchThreadID.xy] = gInput[dispatchThreadID.xy];
 }

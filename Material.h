@@ -7,16 +7,17 @@
 #include <stdint.h>
 #include <vector>
 
-class aiMaterial;
+struct aiMaterial;
 
 namespace En3rN::DX
 {
 	class Material
 	{
 	public:
-		using Container = std::vector<Material>;
+		using Container = std::vector<Material>;		
 		using Index = uint32_t;
 		enum class Map { Diffuse, Normal, Specular };
+		using MapT = std::underlying_type<Map>::type;
 		
 		// vec4f diff, vec3f specColor, float sIntenity, vec3f specPow
 		struct Data

@@ -26,18 +26,13 @@ namespace En3rN::DX
 			using Container = std::vector<Element>;
 
 			friend class enBuffer;
-			template<typename T>
-			struct Ref
-			{
-				T& ref;
-			};
 			Element() = default;
 			Element(const Element& other) = default;
 			Element(Element&& other) noexcept= default;
 			Element& operator = (const Element& other) = default;
 			Element& operator = (Element&& other) noexcept = default;
 			virtual ~Element() = default;
-			
+
 			const std::string&		semantic()	const	{ return m_semantic;}
 			const size_t			stride()	const	{ return m_stride; }
 			const size_t			count()		const	{ return m_count; }
@@ -45,17 +40,12 @@ namespace En3rN::DX
 			const size_t			hash()		const	{ return m_hash; }
 			const uint8_t*			data()		const	{ return m_data.data(); }
 			uint8_t*				data()				{ return m_data.data(); }
-			template<typename T>
-			operator T& () {
-				assert( typeid(T).hash_code() == hash() );
-				return *reinterpret_cast<T*>(data());
-			}
-			template<typename T>
-			T& operator [](size_t index) {
-				assert(typeid(T).hash_code() == m_hash);
+			template <typename T>
+			Element& operator [](size_t index) {
+				/*static_assert(typeid(T).hash_code() == m_hash);
 				assert(index * stride() < size());
-				auto r = reinterpret_cast<T*> (data() + index * stride());
-				return *r;
+				auto r = static_cast<T*> (data() + index * stride);
+				return *r;*/
 			}
 			
 		protected:
@@ -100,6 +90,16 @@ namespace En3rN::DX
 				memcpy( e.m_data.data(), data, e.size());
 			} else
 				memcpy( e.m_data.data(), &data, e.size());
+
+			/*for( auto i = 0; i < count; ++i ) {
+				if constexpr(std::is_array_v<T>)
+					memcpy(&e.m_data[i * stride], &data[i], stride);
+				if constexpr( std::is_pointer_v<T> ) {
+					memcpy( &e.m_data[ i * stride ], data + i, stride );
+				}
+				else
+					memcpy( &e.m_data[ i * stride ], &data, stride );
+			}*/
 		}
 		template<typename T>
 		void add_element( std::vector<T>& data, std::string_view semantic ) {
@@ -139,7 +139,6 @@ namespace En3rN::DX
 		size_t				element_count(); //number of elements in layout
 		size_t				layout_size(); //size of layout in bytes
 		uint8_t*			data();
-		void				clear();
 		Element& operator [] (const std::string& semantic);
 		
 		

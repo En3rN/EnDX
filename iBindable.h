@@ -10,15 +10,7 @@
 
 
 namespace En3rN::DX
-{
-	class Buffer;
-	class Graphics;
-	class Keyboard;
-	class Mouse;
-	class DynamicBindable;
-	class Camera;
-	class BindableManager;	
-	class RenderJob;
+{	
 	class Bindable : public GfxResources
 	{
 	public:

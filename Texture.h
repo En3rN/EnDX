@@ -72,7 +72,7 @@ namespace En3rN::DX
 			subres.pSysMem = simg.GetImage(0, 0, 0)->pixels;
 			subres.SysMemPitch = simg.GetMetadata().width;
 
-			errchk::hres(pDevice->CreateBuffer(&desc, &subres, &buffer));
+			errchk::hres(GetDevice()->CreateBuffer(&desc, &subres, &buffer));
 			
 			D3D11_BUFFER_DESC descBuf{};
 			
@@ -86,7 +86,7 @@ namespace En3rN::DX
 			srvDesc.Format = DXGI_FORMAT_UNKNOWN;
 			srvDesc.BufferEx.NumElements = descBuf.ByteWidth / descBuf.StructureByteStride;
 
-			errchk::hres(pDevice->CreateShaderResourceView(buffer.Get(), &srvDesc, &m_srv));
+			errchk::hres(GetDevice()->CreateShaderResourceView(buffer.Get(), &srvDesc, &m_srv));
 		}
 	};
 }

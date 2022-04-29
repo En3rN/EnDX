@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-class aiMesh;
+struct aiMesh;
 
 namespace En3rN::DX
 {

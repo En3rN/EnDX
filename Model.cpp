@@ -141,8 +141,8 @@ namespace En3rN::DX
 	}
 	Model::handle Model::LoadPrimitive()
 	{
-		Primitive factory;
-		return factory();
+		//Primitive factory;
+		return Model::handle();
 	}
 
 	bool Model::UIControls(Node* node)

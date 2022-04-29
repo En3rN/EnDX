@@ -48,7 +48,7 @@ namespace En3rN::DX
         m_handle (registry, registry.create())
     {
         m_handle.emplace<UIDComponent>(GenerateUID());
-        m_handle.emplace<TagComponent>(std::move(name));
+        m_handle.emplace<TagComponent>(std::move(name));        
     }
     Entity::Entity(entt::registry& registry, 
         aiNode* node, 
@@ -108,35 +108,32 @@ namespace En3rN::DX
     {
         return m_children;
     }
+    
 
     entt::entity Entity::UISelector(entt::entity selected)
-    {        
+    {
+        const auto& uid = GetComponent<UIDComponent>().uId;
+        bool open = false;
+        ImGui::PushID( uid );
         ImGuiTreeNodeFlags flags{};
-        if(selected == m_handle.entity())
+        if(selected == *this)
             flags |= ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_Selected;
         if(m_children.empty())
             flags |= ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_Leaf;
-        ui_open = ImGui::TreeNodeEx(GetName().c_str(), flags);
+        open = ImGui::TreeNodeEx(GetName().c_str(), flags);
         if(ImGui::IsItemClicked()) {            
             selected = m_handle.entity();
             std::string debug = GetName() + "\n";
             Logger::Debug(debug.c_str());
         }
-        if(ui_open) {
+        if(open) {
             for(auto& entity : m_children)
                 selected = entity.UISelector(selected);
             ImGui::TreePop();
         }
+        ImGui::PopID();
         return selected;
     }
-
-    auto Entity::UIControls()
-    {
-        auto [tag, uid, transform] = m_handle.try_get<TagComponent,UIDComponent, Transform>();
-
-        return;
-    }
-
     void Entity::UpdateConstantBuffer(const Transform::Matrix& mat)
     {
         auto& mrc = GetComponent<ModelRendererComponent>();
@@ -167,6 +164,5 @@ namespace En3rN::DX
     size_t Entity::GenerateUID()
 	{
 		return RandomFactory().UID();
-	}  
-
+	}
 };

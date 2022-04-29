@@ -32,12 +32,12 @@ namespace En3rN::DX
 
 		ComPtr<ID3D11Texture2D> tex;
 
-		errchk::hres(pDevice->CreateTexture2D(&texDesc, nullptr, &tex));
+		errchk::hres(GetDevice()->CreateTexture2D(&texDesc, nullptr, &tex));
 
 		D3D11_RENDER_TARGET_VIEW_DESC desc{};
 		desc.Format = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM;
 		desc.ViewDimension = D3D11_RTV_DIMENSION::D3D11_RTV_DIMENSION_TEXTURE2D;
-		errchk::hres(pDevice->CreateRenderTargetView(tex.Get(), &desc, &m_rtv));
+		errchk::hres(GetDevice()->CreateRenderTargetView(tex.Get(), &desc, &m_rtv));
 	}
 	RenderTarget::RenderTarget(const std::string& name ,const Resource& resource) :
 		m_name(name)
@@ -91,12 +91,12 @@ namespace En3rN::DX
 		default:
 			break;
 		}
-		errchk::hres(pDevice->CreateRenderTargetView(resource.GetP(), &RTVdesc, &m_rtv));
+		errchk::hres(GetDevice()->CreateRenderTargetView(resource.GetP(), &RTVdesc, &m_rtv));
 	}
 	
 	bool RenderTarget::Clear(Vec4f color)
 	{
-		pContext->ClearRenderTargetView(m_rtv.Get(), &color.x);
+		GetContext()->ClearRenderTargetView(m_rtv.Get(), &color.x);
 		return true;
 	}
 	Resource RenderTarget::GetResource() const
@@ -117,9 +117,9 @@ namespace En3rN::DX
 //	assert(desc.Format == newD.Format);
 //	auto newStart = desc.ArraySize;
 //	desc.ArraySize += newD.ArraySize;
-//	pDevice->CreateTexture2D(&desc, nullptr, &tex);
-//	pContext->CopySubresourceRegion(tex.Get(), 0, desc.Width, desc.Height, 0, GetResource().GetP(), 0, nullptr);
-//	pContext->CopySubresourceRegion(tex.Get(), newStart, desc.Width, desc.Height, 0, resource.GetP(), 0, nullptr);
+//	GetDevice()->CreateTexture2D(&desc, nullptr, &tex);
+//	GetContext()->CopySubresourceRegion(tex.Get(), 0, desc.Width, desc.Height, 0, GetResource().GetP(), 0, nullptr);
+//	GetContext()->CopySubresourceRegion(tex.Get(), newStart, desc.Width, desc.Height, 0, resource.GetP(), 0, nullptr);
 //
 //
 //

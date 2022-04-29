@@ -28,14 +28,7 @@ namespace En3rN::DX
 {	
 	
 	Graphics::Graphics(HWND hWind, uint16_t width, uint16_t height, bool fullscreen): 
-		fullscreen(fullscreen)/*, m_renderer(
-			RenderPass("Setup"),
-			RenderPass(RenderPass::Name::Phong),
-			RenderPass(RenderPass::Name::Unlit),
-			RenderPass(RenderPass::Name::WriteMask),
-			RenderPass(RenderPass::Name::ReadMask),
-			RenderPass(RenderPass::Name::Fullscreen),
-			RenderPass(RenderPass::Name::Skybox))*/
+		fullscreen(fullscreen)
 	{
 		errchk::hres(CreateDXGIFactory1(IID_IDXGIFactory2, &pDXGIFactory));
 		int i = 0;
@@ -50,8 +43,8 @@ namespace En3rN::DX
 			ss << desc.Description << '\t' << desc.DedicatedVideoMemory << '\t' << desc.DeviceId << '\n\r';
 			OutputDebugStringW(ss.str().c_str());
 		}
-		std::sort(begin(adapters), end(adapters), [](const ComPtr<IDXGIAdapter>& lhs, const ComPtr<IDXGIAdapter>& rhs)
-			{
+		std::ranges::sort(adapters, 
+			[](const ComPtr<IDXGIAdapter>& lhs, const ComPtr<IDXGIAdapter>& rhs){
 				DXGI_ADAPTER_DESC desc[2]{};
 				lhs->GetDesc(&desc[0]);
 				rhs->GetDesc(&desc[1]);
@@ -123,25 +116,14 @@ namespace En3rN::DX
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO();
-		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-
-		/*io.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports;
-		io.BackendFlags |= ImGuiBackendFlags_RendererHasViewports;*/
-		
 		io.ConfigDockingWithShift = true;
-		
-
 		//// Setup Dear ImGui style
 		ImGui::StyleColorsDark();
 		////ImGui::StyleColorsClassic();
-
 		//// Setup Platform/Renderer backends
 		ImGui_ImplWin32_Init(hWind);
 		ImGui_ImplDX11_Init(pDevice.Get(), pContext.Get());
-		
 	}
 
 	void Graphics::ClearState()
@@ -253,7 +235,6 @@ namespace En3rN::DX
 
 	Resource Graphics::GetBackBuffer()
 	{
-		
 		ComPtr<ID3D11Resource> resource;
 		pSwapChain->GetBuffer(0,IID_ID3D11Resource,&resource);
 		return Resource(resource);

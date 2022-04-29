@@ -9,7 +9,7 @@ namespace En3rN::DX
 		m_name(std::move(name)),
 		m_dsv(depthStencil)
 	{
-		std::for_each(begin(rendertargets), end(rendertargets),
+		std::ranges::for_each(rendertargets,
 			[&](const RenderTarget& rtv) {
 				auto resource = rtv.GetResource();
 				auto type = resource.GetDimension();
@@ -43,17 +43,20 @@ namespace En3rN::DX
 	}
 	void RenderPass::Bind()
 	{
-		std::ranges::for_each(m_binds, [](const auto& bind) { bind->Bind(); });
+		std::ranges::for_each(m_binds, [](const auto& bind) { 
+			bind->Bind(); 
+			}
+		);
 	}
-	void RenderPass::SetRenderTargets(ID3D11DeviceContext* context)
+	void RenderPass::SetRenderTargets()
 	{
-		context->OMSetRenderTargets(std::size(m_rtvs), m_rtvs.data(), m_dsv);
-		context->RSSetViewports(std::size(m_vps), m_vps.data());
+		GetContext()->OMSetRenderTargets(std::size(m_rtvs), m_rtvs.data(), m_dsv);
+		GetContext()->RSSetViewports(std::size(m_vps), m_vps.data());
 	}
-	void RenderPass::UnbindRenderTargets(ID3D11DeviceContext* context)
+	void RenderPass::UnbindRenderTargets()
 	{
 		ID3D11RenderTargetView* nullRTV = nullptr;
-		context->OMSetRenderTargets(std::size(m_rtvs), &nullRTV, m_dsv);
+		GetContext()->OMSetRenderTargets(std::size(m_rtvs), &nullRTV, m_dsv);
 	}
 	void RenderPass::ProcessJobs()
 	{
@@ -69,7 +72,7 @@ namespace En3rN::DX
 			for(auto& bindable : step.GetBindables()) {
 				bindable->Bind();
 			}
-			renderer.GetContext()->DrawIndexed(mesh.GetIndexBuffer()->GetCount(), 0, 0);
+			GetContext()->DrawIndexed(mesh.GetIndexBuffer()->GetCount(), 0, 0);
 		};
 		m_jobs.clear();
 	}

@@ -15,7 +15,7 @@ namespace En3rN::DX
 	class FullscreenPass: public RenderPass
 	{
 	public:
-		//inPutRenderTargetName - Lookup ref for Renderer.GetRenderTarget
+		//Lookup ref for Renderer.GetRenderTarget
 		FullscreenPass(std::string&& name, const RenderTarget::Container& rendertargets, DepthStencil::Ptr depthStencil = nullptr) :
 			RenderPass(std::move(name), rendertargets, depthStencil)
 		{
@@ -28,10 +28,10 @@ namespace En3rN::DX
 			enBuffer::Indecies indecies = {
 				0,1,3,3,1,2
 			};
-
 			enBuffer vBuf;
-			vBuf.add_element(positions, "Position", std::size(positions));
+			vBuf.add_element(positions, "Position",std::size(positions));
 			vBuf.add_element(texCords, "TexCoord", std::size(texCords));
+			
 			auto vs = BindableManager::Query<VertexShader>(m_name, "main");
 			Bindable::Base::Container binds = {
 				BindableManager::Query<InputLayout>(vs->GetSignatures(), vs->GetBlob(), "m_name"),
@@ -56,13 +56,13 @@ namespace En3rN::DX
 				auto& step = job.GetStep();
 				for(auto& bindable : step.GetBindables())
 					bindable->Bind();
+			}
 				ps.Bind();				
 				input = std::make_shared<Texture>( renderer.GetRenderTarget( "Outline" ).GetResource() );
 				input->Bind();
-				renderer.GetContext()->DrawIndexed(6, 0, 0);
+				GetContext()->DrawIndexed(6, 0, 0);
 				ID3D11ShaderResourceView* nullSrv = nullptr;				
-				renderer.GetContext()->PSSetShaderResources(0, 1, &nullSrv);
-			}
+				GetContext()->PSSetShaderResources(0, 1, &nullSrv);
 			m_jobs.clear();
 		}
 	private:

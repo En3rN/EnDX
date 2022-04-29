@@ -4,25 +4,22 @@
 
 namespace En3rN::DX
 {
-	/*template <typename T>
+	/*template <typename Element>
 	struct iContainer
 	{
-		using Container = std::vector<T>;
-		template<typename T>
-		void Add(std::shared_ptr<T> element)
+		using Container = std::vector<Element>;
+		template<typename Element>
+		void Add(std::shared_ptr<Element> element)
 		{
-			if constexpr(!std::is_same_v<element, T>) {
+			if constexpr(!std::is_same_v<element, Element>) {
 				for(auto& stored : m_elements) {
-					if(std::dynamic_pointer_cast<T>(stored)) {
+					if(std::dynamic_pointer_cast<Element>(stored)) {
 						stored = element;
 						return;
 					}
 				}
 			}
-			if(std::dynamic_pointer_cast<Shader>(element))
-				m_elements.insert(m_elements.begin(), element);
-			else
-				m_elements.push_back(element);
+			
 			return;
 		}
 		template <typename T>
@@ -45,7 +42,7 @@ namespace En3rN::DX
 			return result;
 		}
 		template <typename ... elements>
-		void Add(element::Base::handle element, elements ... rest)
+		void Add(Element element, elements ... rest)
 		{
 			Addelement(element);
 			if constexpr(sizeof...(rest) > 0)

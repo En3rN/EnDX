@@ -29,16 +29,16 @@ namespace En3rN::DX
 				for( auto& bindable : bindables ) {
 					bindable->Bind();
 				}
-				renderer.GetContext()->DrawIndexed( mesh.GetIndexBuffer()->GetCount(), 0, 0 );
+				GetContext()->DrawIndexed( mesh.GetIndexBuffer()->GetCount(), 0, 0 );
 			};
 			m_jobs.clear();
 
 			if( !InfoManager::Empty() )
 				throw EnExDXInfo();
-			UnbindRenderTargets(renderer.GetContext());
+			UnbindRenderTargets();
 			if( !InfoManager::Empty() )
 				throw EnExDXInfo();
-			Resource resource = renderer.GetRenderTarget("Outline").GetResource();
+			static Resource resource = renderer.GetRenderTarget("Outline").GetResource();
 			static Texture input(resource);
 			auto desc = std::get<2>(resource.GetDesc());
 			auto dim = resource.GetDimension();
@@ -48,16 +48,16 @@ namespace En3rN::DX
 			static Texture::DXPtr unBindTex[]={nullptr,nullptr};
 			static Texture::DXPtr bindTex[] = { input.GetP(),output.GetP()};
 			
-			renderer.GetContext()->CSSetShaderResources( 0, 2, bindTex );
+			GetContext()->CSSetShaderResources( 0, 2, bindTex );
 
 			assert(desc.Width < D3D11_CS_DISPATCH_MAX_THREAD_GROUPS_PER_DIMENSION);
 			assert(desc.Height < D3D11_CS_DISPATCH_MAX_THREAD_GROUPS_PER_DIMENSION);
 			assert(desc.ArraySize < D3D11_CS_DISPATCH_MAX_THREAD_GROUPS_PER_DIMENSION);
-			renderer.GetContext()->Dispatch(desc.Width, desc.Height, desc.ArraySize);
+			GetContext()->Dispatch(1, 1, 1);
 			if( !InfoManager::Empty() )
 				throw EnExDXInfo();
 			
-			renderer.GetContext()->CSSetShaderResources( 0, 2, unBindTex );
+			GetContext()->CSSetShaderResources( 0, 2, unBindTex );
 			if(!InfoManager::Empty())
 				throw EnExDXInfo();
 

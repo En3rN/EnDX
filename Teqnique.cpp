@@ -39,8 +39,8 @@ namespace En3rN::DX
 					) );
 					Vec3f color{ 1,0,0 };
 					float scale{1.05};
-					//outline.GetContext().add_element( color, "Color" );
-					//outline.GetContext().add_element( scale, "Scale" );					
+					//outline.GetContext()->add_element( color, "Color" );
+					//outline.GetContext()->add_element( scale, "Scale" );					
 					return outline;
 				}
 			}

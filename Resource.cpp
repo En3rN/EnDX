@@ -19,7 +19,7 @@ namespace En3rN::DX
 		texDesc.MiscFlags = miscFlags;
 
 		ComPtr<ID3D11Texture2D> tex;
-		pDevice->CreateTexture2D( &texDesc, nullptr, &tex );
+		GetDevice()->CreateTexture2D( &texDesc, nullptr, &tex );
 		m_res = tex;
 	}
 
@@ -33,7 +33,7 @@ namespace En3rN::DX
 		{
 			auto tDesc = get<0>( desc );
 			ComPtr<ID3D11Buffer> tex;
-			pDevice->CreateBuffer( &tDesc, nullptr, &tex );
+			GetDevice()->CreateBuffer( &tDesc, nullptr, &tex );
 			m_res = tex;
 			break;
 		}
@@ -42,7 +42,7 @@ namespace En3rN::DX
 		{
 			auto tDesc = get<1>( desc );
 			ComPtr<ID3D11Texture1D> tex;
-			pDevice->CreateTexture1D( &tDesc, nullptr, &tex );
+			GetDevice()->CreateTexture1D( &tDesc, nullptr, &tex );
 			m_res = tex;
 			break;
 		}
@@ -51,7 +51,7 @@ namespace En3rN::DX
 		{
 			auto tDesc = get<2>( desc );
 			ComPtr<ID3D11Texture2D> tex;
-			pDevice->CreateTexture2D( &tDesc, nullptr, &tex );
+			GetDevice()->CreateTexture2D( &tDesc, nullptr, &tex );
 			m_res = tex;
 			break;
 		}
@@ -59,7 +59,7 @@ namespace En3rN::DX
 		{
 			auto tDesc = get<3>( desc );
 			ComPtr<ID3D11Texture3D> tex;
-			pDevice->CreateTexture3D( &tDesc, nullptr, &tex );
+			GetDevice()->CreateTexture3D( &tDesc, nullptr, &tex );
 			m_res = tex;
 			break;
 		}
@@ -129,7 +129,7 @@ namespace En3rN::DX
 		ComPtr<ID3D11Device> pDevice;
 		ComPtr<ID3D11DeviceContext> pContext;
 		m_res->GetDevice(&pDevice);
-		pDevice->GetImmediateContext(&pContext);
+		GetDevice()->GetImmediateContext(&pContext);
 		DirectX::ScratchImage simg{};
 		DirectX::CaptureTexture(pDevice.Get(), pContext.Get(), GetP(), simg);
 		return simg;

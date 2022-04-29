@@ -4,17 +4,16 @@
 #include <string>
 namespace En3rN
 {	
-	using ms = std::milli;
-	using ns = std::nano;
-	using sek = std::ratio<1>;
-	using min = std::ratio<60, 1>;
-	
+	namespace units {
+		using ms = std::milli;
+		using ns = std::nano;
+		using sek = std::ratio<1>;
+		using min = std::ratio<60, 1>;
+	}
 	template  < typename retVal = float,
-				typename dur = std::chrono::milliseconds >
-			 				
+				typename dur = std::chrono::milliseconds >	
 	class Timer
 	{
-		
 	public:		
 
 		Timer() = default;
@@ -44,7 +43,7 @@ namespace En3rN
 			return elapsed.count();
 		}
 		
-		retVal GetFrameTimer()
+		retVal GetDeltaTime()
 		{
 			auto now = std::chrono::steady_clock::now();
 			auto elapsed = std::chrono::duration<retVal, dur> (now - m_last);
@@ -53,7 +52,7 @@ namespace En3rN
 		}
 		std::string GetFrameTimerString()
 		{
-			return std::string(std::to_string(GetFrameTimer()));
+			return std::string(std::to_string(GetDeltaTime()));
 		}
 		std::string GetElapsedString()
 		{
@@ -64,5 +63,6 @@ namespace En3rN
 		std::chrono::steady_clock::time_point m_start = std::chrono::steady_clock::now();
 		std::chrono::steady_clock::time_point m_last = m_start;
 	};
+	using SekTimer = Timer<float, units::sek>;
 }
 

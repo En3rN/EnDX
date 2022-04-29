@@ -25,12 +25,12 @@ namespace En3rN::DX
         Graphics& gfx = wnd.GetGfx();        
         wnd.Register();
         mouse.Register();
-        Renderer renderer(gfx);
+        Renderer renderer;
         scenes.emplace_back(std::make_unique<Scene>(&renderer));
         
         while (ProcessMsg())
         {
-            auto deltaTime = timer.GetFrameTimer();
+            auto deltaTime = timer.GetDeltaTime();
             gfx.BeginFrame(timer.GetElapsed());
             //HandleInput
             eventHandler.ProcessEvents();
@@ -63,10 +63,12 @@ namespace En3rN::DX
         ImGui::DestroyContext();
     }
     EnDX& EnDX::Get(){
+        assert( instance );
         return *instance.get();
     }    
     Window& EnDX::GetWindow()
     {
+        assert( windows.at( activeWindow ).get() ); //active window not set;
         return *windows.at(activeWindow).get();
     }
     
